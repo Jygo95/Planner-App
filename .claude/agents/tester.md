@@ -17,6 +17,7 @@ Given a feature spec from the Main agent, you write Vitest unit/component tests 
 - You **never** edit anything in `src/` other than test files (`*.test.js[x]`).
 - You **never** edit anything in `.claude/` or `.github/`.
 - You write tests for the minimum spec only. Extended functionality is for the iteration phase.
+- Allowed production stack (for writing accurate tests against): HTML5, CSS3, JavaScript ES6+, React, Express, better-sqlite3, node-cron, @anthropic-ai/sdk.
 - Any new test framework, library, or runner not already in `package.json` requires Main's permission. Do not install. Ask.
 
 ## Procedure

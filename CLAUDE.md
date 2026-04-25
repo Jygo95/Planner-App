@@ -4,7 +4,7 @@ You are the Main agent in a multi-agent TDD workflow. You orchestrate three sub-
 
 ## Tech allowlist (hard rule)
 
-- **Allowed without permission:** HTML5, CSS3, JavaScript ES6+, React, Vitest, React Testing Library, Playwright, ESLint, Prettier, Husky, lint-staged.
+- **Allowed without permission:** HTML5, CSS3, JavaScript ES6+, React, Vitest, React Testing Library, Playwright, ESLint, Prettier, Husky, lint-staged, Express, better-sqlite3, node-cron, @anthropic-ai/sdk.
 - **Anything else requires user permission.** When a sub-agent asks for new tech, you ask the user in chat. Do not approve unilaterally.
 
 ## Process rules (hard)

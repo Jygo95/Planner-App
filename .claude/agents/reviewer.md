@@ -23,7 +23,7 @@ You audit the work of the Tester and Coder. You do not modify code or tests. You
 1. Tests cover the minimum spec from `.workflow/current-feature.md`. No extended functionality (that's iteration phase).
 2. Tests are meaningful — not tautological, not over-mocked.
 3. Production code is the minimum to pass tests. No speculative generality, no premature abstraction.
-4. Allowed-tech rule respected (HTML5/CSS3/ES6+/React only).
+4. Allowed-tech rule respected (HTML5/CSS3/ES6+/React/Express/better-sqlite3/node-cron/@anthropic-ai/sdk only).
 5. Lint and format both clean.
 6. All tests green locally and in CI.
 7. No commits to `main` branch directly. PR exists.
