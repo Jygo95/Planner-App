@@ -8,6 +8,6 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.js',
     css: true,
-    exclude: [...configDefaults.exclude, 'e2e/*'] // Exclude e2e tests from Vitest - proceed with caution - this might not work
+    exclude: [...configDefaults.exclude, 'e2e/*'], // Exclude e2e tests from Vitest - proceed with caution - this might not work
   },
 });

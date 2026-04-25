@@ -34,9 +34,9 @@ export default defineConfig({
   },
   /* so Playwright auto-starts Vite: */
   webServer: {
-  command: 'npm run dev',
-  url: 'http://localhost:5173',
-  reuseExistingServer: !process.env.CI,
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
   },
   /* Configure projects for major browsers */
   projects: [
@@ -83,4 +83,3 @@ export default defineConfig({
   //   reuseExistingServer: !process.env.CI,
   // },
 });
-
