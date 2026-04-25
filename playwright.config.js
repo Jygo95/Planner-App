@@ -32,12 +32,19 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-  /* so Playwright auto-starts Vite: */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  /* so Playwright auto-starts Vite and the backend: */
+  webServer: [
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'node backend/src/index.js',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
   /* Configure projects for major browsers */
   projects: [
     {
@@ -53,6 +60,12 @@ export default defineConfig({
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+    },
+
+    {
+      name: 'backend',
+      use: { baseURL: 'http://localhost:3001' },
+      testMatch: '**/backend-*.spec.js',
     },
 
     /* Test against mobile viewports. */
