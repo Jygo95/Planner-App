@@ -21,7 +21,7 @@ describe('migrations', () => {
   it('creates the bookings table with correct columns', () => {
     runMigrations(db);
     const cols = db
-      .prepare("PRAGMA table_info(bookings)")
+      .prepare('PRAGMA table_info(bookings)')
       .all()
       .map((c) => c.name);
     expect(cols).toContain('id');
@@ -36,7 +36,7 @@ describe('migrations', () => {
   it('creates the booking_log table with correct columns', () => {
     runMigrations(db);
     const cols = db
-      .prepare("PRAGMA table_info(booking_log)")
+      .prepare('PRAGMA table_info(booking_log)')
       .all()
       .map((c) => c.name);
     expect(cols).toContain('id');
@@ -49,7 +49,7 @@ describe('migrations', () => {
   it('creates the idx_bookings_room_time index', () => {
     runMigrations(db);
     const indexes = db
-      .prepare("PRAGMA index_list(bookings)")
+      .prepare('PRAGMA index_list(bookings)')
       .all()
       .map((i) => i.name);
     expect(indexes).toContain('idx_bookings_room_time');

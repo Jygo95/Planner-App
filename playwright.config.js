@@ -41,7 +41,7 @@ export default defineConfig({
     },
     {
       command: 'node backend/src/index.js',
-      url: 'http://localhost:3001',
+      url: 'http://localhost:3001/api/health',
       reuseExistingServer: !process.env.CI,
     },
   ],
