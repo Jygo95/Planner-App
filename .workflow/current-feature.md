@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** tests-pending
+**Status:** red
 **Branch:** feat/backend-skeleton
 **Phase:** increment
 
@@ -62,8 +62,8 @@ data/
 ## State machine
 
 - queued
-- tests-pending  ← **current**
-- red
+- tests-pending
+- red  ← **current**
 - green
 - review
 - main-validation
