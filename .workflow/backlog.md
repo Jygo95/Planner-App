@@ -4,8 +4,8 @@ Each row is one feature branch. Status: `queued` unless noted otherwise.
 
 | # | Branch | Scope summary | Key PRD refs | Status |
 |---|--------|---------------|-------------|--------|
-| 01 | `feat/backend-skeleton` | Express server, SQLite init + migrations, rooms config, `GET /api/rooms`, `GET /api/health` | C-1,C-2,C-5,C-7,FR-CRON-2,NFR-6 | **active** |
-| 02 | `feat/frontend-skeleton` | Page shell, responsive breakpoints (6 viewports), gear icon + settings sheet, WebGL toggle in localStorage | FR-V-4,FR-V-5,NFR-1 | queued |
+| 01 | `feat/backend-skeleton` | Express server, SQLite init + migrations, rooms config, `GET /api/rooms`, `GET /api/health` | C-1,C-2,C-5,C-7,FR-CRON-2,NFR-6 | merged ✓ |
+| 02 | `feat/frontend-skeleton` | Page shell, responsive breakpoints (6 viewports), gear icon + settings sheet, WebGL toggle in localStorage | FR-V-4,FR-V-5,NFR-1 | **active** |
 | 03 | `feat/bookings-api` | Full CRUD, deterministic conflict check in transaction, all server-side booking rules, booking_log writes, 409 shape | C-4,C-7,FR-CAL-6,FR-CONF-1,FR-CONF-2,FR-LOG-1–3,FR-RULE-1–5 | queued |
 | 04 | `feat/manual-form` | Manual form UI, confirmation card, "Switch to manual" affordance, wires to bookings API | FR-MAN-1–5,FR-CHAT-7 | queued |
 | 05 | `feat/calendar-day-week` | Day + Week views, multi-room columns, current-time indicator, room filter, navigation, bounds | FR-CAL-1(day+wk),FR-CAL-2–4 | queued |
