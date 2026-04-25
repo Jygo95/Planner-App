@@ -27,3 +27,27 @@
 - `llmAvailable` static true: live check in task 09.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 02 — frontend-skeleton — 2026-04-25
+
+**PRD refs covered:** FR-V-4, FR-V-5, NFR-1
+
+### Validation
+
+- **FR-V-4 (gear icon + settings sheet):** Gear icon present in header at all viewport widths. Settings sheet renders with three options (Auto / Force enable WebGL / Force CSS only). ✓
+- **FR-V-5 (setting persistence):** `useWebGLSetting` reads and writes `localStorage` key `meeting-queuer.webgl-mode`. Default value `'auto'` when key absent. ✓
+- **NFR-1 (responsive viewports):** Breakpoints tested at all 6 widths via Playwright: 430, 360, 1024, 1440, 3440, 1080. Single-column layout for < 1280px (covers mobile, tablet, and vertical monitor). Two-column at ≥ 1280px. ✓
+
+### Constraints confirmed
+- No Tailwind, no Redux, no CSS-in-JS — plain CSS throughout. ✓
+- No TypeScript. ✓
+- Gear icon not hidden at any breakpoint. ✓
+
+### Deferrals
+- Actual WebGL activation logic: task 16 (this task only persists the setting).
+- Full visual styling (Liquid Glass): task 08.
+- Chat dock and calendar area are placeholder divs only — content filled by tasks 05–10.
+
+**Status: VALIDATED ✓**
