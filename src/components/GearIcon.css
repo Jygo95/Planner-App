@@ -1,0 +1,17 @@
+.gear-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.gear-button {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.gear-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}

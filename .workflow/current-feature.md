@@ -1,69 +1,44 @@
 # Current Feature
 
-**Status:** red
-**Branch:** feat/backend-skeleton
+**Status:** tests-pending
+**Branch:** feat/frontend-skeleton
 **Phase:** increment
 
 ## Spec
 
-### Increment 01 — Backend Skeleton
+### Increment 02 — Frontend Skeleton
 
-Stand up the Express + SQLite backend. No LLM code; no booking CRUD.
+Page shell with layout regions, responsive CSS breakpoints for all 6 viewports, gear icon in header, and settings sheet with WebGL toggle persisted to localStorage.
 
-**Files to create:**
-```
-backend/
-  package.json          # dependencies: express, better-sqlite3, dotenv, uuid, node-cron
-  .env.example          # ANTHROPIC_API_KEY=
-  src/
-    index.js            # Express app entry; mounts routes; runs migrations on start; port 3001
-    db/
-      index.js          # Opens DB at data/queuer.db, exports db instance
-      migrations.js     # CREATE TABLE bookings, booking_log; index on (room_id, start_utc, end_utc); idempotent
-    config/
-      rooms.js          # ROOMS array (california, nevada, oregon) as in PRD §3.1
-    routes/
-      health.js         # GET /api/health → { ok: true, llmAvailable: true, dailyCapRemaining: 500 }
-      rooms.js          # GET /api/rooms → ROOMS
-    middleware/
-      errorHandler.js   # Generic Express error handler
-data/
-  .gitkeep
-```
+**Full spec:** `.workflow/tasks/02-frontend-skeleton.md`
 
-**Repo root changes:**
-- `.gitignore`: add `backend/.env` and `data/queuer.db`
+**Summary of what to build:**
+- Replace `src/App.jsx` with a layout shell: `<header>` (app name + gear icon), `<main>` (calendar area + chat dock regions)
+- `src/App.css` — responsive breakpoints: `< 1280px` → single column (mobile/tablet/vertical-monitor), `≥ 1280px` → two column
+- `src/components/SettingsSheet.jsx` — modal with 3 WebGL toggle options (Auto / Force WebGL / Force CSS)
+- `src/components/GearIcon.jsx` — ⚙ button in header; opens SettingsSheet
+- `src/hooks/useWebGLSetting.js` — reads/writes `localStorage` key `meeting-queuer.webgl-mode`; defaults to `'auto'`
 
-**bookings table columns:** id (TEXT PK UUID), room_id (TEXT NOT NULL), start_utc (TEXT NOT NULL), end_utc (TEXT NOT NULL), booker_name (TEXT NOT NULL), description (TEXT), created_at_utc (TEXT NOT NULL)
+**Constraints:**
+- No Tailwind, no Redux, no CSS-in-JS — plain CSS only
+- No TypeScript
+- Gear icon visible on ALL viewports including mobile
 
-**booking_log table columns:** id (INTEGER PK AUTOINCREMENT), at_utc (TEXT NOT NULL), action (TEXT NOT NULL), booking_id (TEXT NOT NULL), snapshot_json (TEXT NOT NULL)
+**Tests required (Tester writes these as failing):**
 
-**Index:** `CREATE INDEX IF NOT EXISTS idx_bookings_room_time ON bookings (room_id, start_utc, end_utc)`
+Vitest / RTL:
+1. `src/components/SettingsSheet.test.jsx` — renders 3 options; selecting updates localStorage; initial value read from localStorage
+2. `src/components/GearIcon.test.jsx` — clicking opens SettingsSheet; clicking outside closes it
+3. `src/hooks/useWebGLSetting.test.js` — returns stored value; setMode writes to localStorage; defaults to 'auto'
 
-**Constraints to honour:**
-- C-2: `.env` gitignored, API key never committed
-- C-3 / FR-LOG-2: health endpoint must NOT read booking_log; no log route exists
-
-**PRD refs:** C-1, C-2, C-5, C-7, FR-CRON-2, NFR-6 (partial)
-
-### Tests required (Tester writes these as failing)
-
-**Vitest unit (`backend/src/**/*.test.js`):**
-1. `db/migrations.test.js` — migrations create bookings + booking_log tables with correct columns; idempotent (safe to run twice)
-2. `config/rooms.test.js` — ROOMS has exactly 3 entries; each has id, name, floor, capacity, equipment (array), notes
-
-**Vitest integration (`backend/src/**/*.test.js`):**
-3. `routes/health.test.js` — GET /api/health returns 200 + `{ ok: true, llmAvailable: true, dailyCapRemaining: 500 }`
-4. `routes/rooms-route.test.js` — GET /api/rooms returns 200 + array of 3 rooms
-
-**Playwright E2E (`e2e/`):**
-5. `backend-health.spec.js` — add a second Playwright project (`baseURL: http://localhost:3001`, webServer: `node backend/src/index.js`); test navigates to `/api/health` and asserts JSON contains `"ok":true`
+Playwright E2E:
+4. `e2e/frontend-skeleton.spec.js` — on 6 viewports: page renders, gear icon visible, clicking gear shows settings sheet with 3 options. Use testIgnore on backend project so this test is excluded from the backend project.
 
 ## State machine
 
 - queued
-- tests-pending
-- red  ← **current**
+- tests-pending  ← **current**
+- red
 - green
 - review
 - main-validation
