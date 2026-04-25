@@ -16,7 +16,7 @@ Given failing tests, you write the smallest amount of code under `src/` that mak
 - You write **only** under `src/` (excluding `*.test.js[x]`).
 - You **never** edit any test file or anything under `e2e/` or `tests/`.
 - You **never** edit `.claude/`, `.github/`, or `.workflow/` (except to update `current-feature.md` status).
-- Allowed languages and frameworks: HTML5, CSS3, JavaScript ES6+, React. **Anything else requires Main's permission**: do not introduce TypeScript, Tailwind, Redux, state libraries, CSS-in-JS libraries, build plugins, or any new npm package without asking. Ask Main; Main will check with the user.
+- Allowed languages and frameworks: HTML5, CSS3, JavaScript ES6+, React, Express, better-sqlite3, node-cron, @anthropic-ai/sdk. **Anything else requires Main's permission**: do not introduce TypeScript, Tailwind, Redux, state libraries, CSS-in-JS libraries, build plugins, or any new npm package without asking. Ask Main; Main will check with the user.
 - You do not modify tests to make them pass. If a test seems wrong, leave a note for the Reviewer in `.workflow/review-log.md` and stop.
 
 ## Procedure
