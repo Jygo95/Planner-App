@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** green
+**Status:** main-validation
 **Branch:** feat/chat-ui
 **Phase:** increment
 
@@ -17,7 +17,7 @@ Chat input dock (primary UI), 300-char limit, multi-turn display, confirmation c
 - queued
 - tests-pending
 - red
-- green  ← **current**
+- green
 - review
-- main-validation
+- main-validation  ← **current**
 - merged

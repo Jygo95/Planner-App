@@ -234,3 +234,34 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - WebGL refraction layer: task 16.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 10 — chat-ui — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-CHAT-1, FR-CHAT-2, FR-CHAT-3, FR-CHAT-6, FR-CHAT-7, FR-CHAT-8, FR-CHAT-9, C-6
+
+### Validation
+
+- **FR-CHAT-1 (dock visible without scroll):** Mobile: `position: fixed; bottom: 0` at 320px height — always visible. Desktop (≥1024px): fills its layout column. All 6 viewports covered. ✓
+- **FR-CHAT-2 (300-char limit + counter):** `maxLength={300}` on textarea; live counter renders `{count} / 300`; counter style turns red at ≥270. ✓
+- **FR-CHAT-3 (full history per request):** `useChat.sendMessage` builds `nextMessages = [...messages, userMessage]` and POSTs `{ messages: nextMessages }` — full accumulated history sent every call. ✓
+- **FR-CHAT-6 (reset on success, no localStorage):** On POST `/api/bookings` 201: `resetConversation()` clears messages, `setInputValue('')` clears input. No `localStorage` writes anywhere in the chat stack. State lives in React state only. ✓
+- **C-6 (no cross-session persistence):** Confirmed — `useChat` uses `useState` only; no `localStorage`/`sessionStorage`. Conversation gone on page reload. ✓
+- **FR-CHAT-7 (confirmation card):** `ready-to-confirm` status injects `<ChatConfirmCard>` with all required fields; confirm POSTs to `/api/bookings`; cancel calls `sendMessage("Booking cancelled. What would you like to change?")` to continue. ✓
+- **FR-CHAT-8 (parse-failure):** `parse-failure` status replaces message content with the specified guidance string. Not blank, not a raw error. ✓
+- **FR-CHAT-9 (LLM-down banner):** `useHealthPoll` checks `/api/health` on mount and on `triggerPoll()`. When `llmAvailable: false`: `<LLMUnavailableBanner role="alert">` shown; `<ChatInput>` replaced by `<ManualForm>` (manual fallback accessible). When available again: input restored. `onFocus` on textarea wired to `triggerPoll()`. ✓
+
+### Constraints confirmed
+- No TypeScript, no Tailwind, no new npm packages. ✓
+- No API key or sensitive data in any frontend file. ✓
+- `ChatDock.css` uses glass tokens; no hardcoded light-mode values. ✓
+
+### Deferrals
+- Session cap (banner@5, disable@10): task 13.
+- Daily cap enforcement: task 13.
+- Conflict response in chat flow (409 → LLM message): task 14.
+- Full toast on booking success: task 18.
+
+**Status: VALIDATED ✓**
