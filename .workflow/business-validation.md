@@ -151,3 +151,28 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - FR-CAL-6 (edit/cancel from calendar): task 07.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 06 — calendar-month — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-CAL-1 (month)
+
+### Validation
+
+- **FR-CAL-1 month view:** Month grid renders 4–6 week rows × 7 columns. Each day cell shows day number + density count (only bookings for `filteredRooms`). ✓
+- **Day click → Day view:** `handleMonthDayClick` sets `currentDate` and `view='day'`. ✓
+- **Out-of-bounds days disabled:** `aria-disabled="true"` + CSS class; `handleCellClick` returns early. ✓
+- **Navigation bounds:** `navigateMonth` clamps to `minMonthStr`/`maxMonthStr` (−365d / +90d). ✓
+- **View picker:** Day | Week | Month tabs present in `Calendar.jsx`. ✓
+- **Density respects filter:** Density map built by filtering `bookings` on `filteredRooms.has(room_id)`. ✓
+
+### Constraints confirmed
+- No external calendar library — plain JS Date + Intl. ✓
+- No TypeScript, no Tailwind. ✓
+
+### Deferrals
+- Booking detail panel from month view (click booking): task 07.
+
+**Status: VALIDATED ✓**
