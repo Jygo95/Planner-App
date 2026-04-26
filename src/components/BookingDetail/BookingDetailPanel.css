@@ -4,12 +4,25 @@
   right: 0;
   width: 360px;
   height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-shadow);
   padding: 24px;
   z-index: 100;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+.booking-detail-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-specular);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .booking-detail-close {
@@ -20,7 +33,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #555;
+  color: inherit;
 }
 
 .booking-detail-room {
@@ -32,7 +45,7 @@
 
 .booking-detail-times {
   font-size: 16px;
-  color: #333;
+  color: #e0e0e0;
   margin-bottom: 4px;
 }
 
@@ -42,7 +55,7 @@
 
 .booking-detail-duration {
   font-size: 14px;
-  color: #666;
+  color: #c0c0c0;
   margin-bottom: 12px;
 }
 
@@ -54,7 +67,7 @@
 
 .booking-detail-description {
   font-size: 14px;
-  color: #444;
+  color: #d0d0d0;
   margin-bottom: 16px;
 }
 

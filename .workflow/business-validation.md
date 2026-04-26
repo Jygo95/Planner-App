@@ -176,3 +176,31 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Booking detail panel from month view (click booking): task 07.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 07 — booking-detail-panel — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-CAL-5, FR-CAL-6, FR-LOG-1, FR-LOG-3
+
+### Validation
+
+- **FR-CAL-5 (panel fields):** Room display name (California/Nevada/Oregon via lookup), start/end in Europe/Riga HH:MM, duration, booker name, description (conditionally). ✓
+- **FR-CAL-5 (Edit action):** "Edit" button opens inline pre-filled form (UTC→Riga conversion on open); `onEditSave(payload)` fires PATCH with full body on confirm. ✓
+- **FR-CAL-5 (Cancel action):** Inline confirmation "Cancel this booking?" shown before DELETE fires; "Yes, cancel it" calls `onCancelConfirm(id)`. ✓
+- **FR-CAL-6 (log writes):** PATCH fires booking_log `edit` entry server-side (per task 03 tests). DELETE fires `cancel` entry with pre-delete snapshot (per task 03 tests). ✓
+- **FR-LOG-1/FR-LOG-3:** Covered by task 03 backend; trust confirmed there. ✓
+- **Accessibility:** Escape key calls `onClose` via keydown useEffect. `data-testid="booking-detail-panel"` present. ✓
+- **No auth restriction:** No auth check in panel — anyone can edit/cancel. ✓
+
+### Constraints confirmed
+- Description IS shown (owner view, not conflict response). ✓
+- `data-testid="booking-block-{id}"` matches E2E selector. ✓
+- No new packages. ✓
+
+### Deferrals
+- Focus trap inside panel: task 18 (polish pass a11y).
+- Full toast on edit/cancel success: task 18.
+
+**Status: VALIDATED ✓**
