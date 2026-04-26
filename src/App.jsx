@@ -1,5 +1,6 @@
 import GearIcon from './components/GearIcon';
 import ManualForm from './components/ManualForm/ManualForm.jsx';
+import Calendar from './components/Calendar/Calendar.jsx';
 import './App.css';
 
 export default function App() {
@@ -10,7 +11,9 @@ export default function App() {
         <GearIcon />
       </header>
       <main className="app-main">
-        <div className="calendar-area" />
+        <div className="calendar-area">
+          <Calendar />
+        </div>
         <div className="chat-dock">
           <ManualForm />
         </div>
