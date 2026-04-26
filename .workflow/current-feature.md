@@ -1,23 +1,23 @@
 # Current Feature
 
-**Status:** tests-pending
-**Branch:** feat/llm-adapter
+**Status:** green
+**Branch:** feat/chat-ui
 **Phase:** increment
 
 ## Spec
 
-### Increment 09 — LLM Adapter
+### Increment 10 — Chat UI
 
-LLM module with parseBookingRequest, generateWittyResponse, POST /api/chat, system prompt, token budgets. Health endpoint updated.
+Chat input dock (primary UI), 300-char limit, multi-turn display, confirmation card in chat flow, LLM-unavailable and parse-failure states, conversation reset on success.
 
-**Full spec:** `.workflow/tasks/09-llm-adapter.md`
+**Full spec:** `.workflow/tasks/10-chat-ui.md`
 
 ## State machine
 
 - queued
 - tests-pending
-- red  ← **current**
-- green
+- red
+- green  ← **current**
 - review
 - main-validation
 - merged
