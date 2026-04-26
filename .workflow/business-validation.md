@@ -204,3 +204,33 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Full toast on edit/cancel success: task 18.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 08 — liquid-glass-css — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-V-1, FR-V-2, NFR-1, NFR-4, NFR-5
+
+### Validation
+
+- **FR-V-1 (glass design tokens):** All five tokens defined on `:root` — `--glass-bg`, `--glass-border`, `--glass-blur`, `--glass-shadow`, `--glass-specular`. SF font stack as `--font-stack`. Room color tokens. ✓
+- **FR-V-1 (glass treatment):** `backdrop-filter` + `::before` specular highlight on all 5 main panels (App, Calendar, ManualForm, ConfirmationCard, BookingDetailPanel). ✓
+- **FR-V-1 (buttons/inputs):** Glass tokens on all buttons and inputs; focus-visible rings (2px solid `#60a5fa`). Calendar toolbar buttons use `var(--glass-bg/border/radius-button)`. ✓
+- **FR-V-2 (CSS-only baseline):** No WebGL dependency — pure CSS. ✓
+- **NFR-5 (keyboard nav):** `button:focus-visible` and `input:focus` have visible outlines. `BookingBlock` has `role="button"`, `tabIndex={0}`, `aria-label` with booker + room + time. GearIcon has `aria-label="Settings"`. ✓
+- **Dark theme:** Body dark gradient background; all components use glass tokens or dark-compatible `rgba(...)`. No light-mode hardcoded values remaining. ✓
+- **MonthView cells:** Glass tokens throughout; dark-compatible hover/disabled states. ✓
+- **SettingsSheet:** Glass hover/selected states. ✓
+
+### Constraints confirmed
+- No Tailwind, no CSS-in-JS, no new packages. ✓
+- `--sans` leftover removed from `:root`. ✓
+- `BookingDetailPanel` duplicate `overflow: hidden` removed; `overflow-y: auto` restored. ✓
+
+### Deferrals
+- Visual regression baseline comparison: task 17.
+- Full a11y pass (focus trap, complete ARIA audit): task 18.
+- WebGL refraction layer: task 16.
+
+**Status: VALIDATED ✓**
