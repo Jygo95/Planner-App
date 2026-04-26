@@ -1,22 +1,22 @@
 # Current Feature
 
-**Status:** red
-**Branch:** feat/booking-detail-panel
+**Status:** tests-pending
+**Branch:** feat/liquid-glass-css
 **Phase:** increment
 
 ## Spec
 
-### Increment 07 — Booking Detail Panel
+### Increment 08 — Liquid Glass CSS
 
-Click a calendar event → detail panel showing full booking info. Edit and Cancel actions. booking_log writes.
+Full Liquid Glass visual layer across all components and viewports, accessibility pass.
 
-**Full spec:** `.workflow/tasks/07-booking-detail-panel.md`
+**Full spec:** `.workflow/tasks/08-liquid-glass-css.md`
 
 ## State machine
 
 - queued
-- tests-pending
-- red  ← **current**
+- tests-pending  ← **current**
+- red
 - green
 - review
 - main-validation
