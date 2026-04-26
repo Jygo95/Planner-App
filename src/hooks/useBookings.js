@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useCallback, useRef } from 'react';
 
 const initialState = { bookings: [], loading: false, error: null };
 
@@ -17,6 +17,13 @@ function reducer(state, action) {
 
 export default function useBookings({ from, to }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const triggerRef = useRef(0);
+  const [tick, setTick] = useReducer((n) => n + 1, 0);
+
+  const refetch = useCallback(() => {
+    triggerRef.current += 1;
+    setTick();
+  }, []);
 
   useEffect(() => {
     if (!from || !to) return;
@@ -45,7 +52,7 @@ export default function useBookings({ from, to }) {
     return () => {
       cancelled = true;
     };
-  }, [from, to]);
+  }, [from, to, tick]);
 
-  return state;
+  return { ...state, refetch };
 }

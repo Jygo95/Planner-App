@@ -38,8 +38,20 @@ export default function BookingBlock({ booking, onClick }) {
   return (
     <div
       className="booking-block"
-      style={{ top: `${top}%`, height: `${height}%`, position: 'absolute', width: '100%' }}
+      data-testid={`booking-block-${booking.id}`}
+      style={{
+        top: `${top}%`,
+        height: `${height}%`,
+        position: 'absolute',
+        width: '100%',
+        cursor: 'pointer',
+      }}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && onClick) onClick(e);
+      }}
     >
       <span className="booking-booker">{booking.booker_name}</span>
       <span className="booking-time">

@@ -3,7 +3,9 @@ import DayView from './DayView.jsx';
 import WeekView from './WeekView.jsx';
 import MonthView from './MonthView.jsx';
 import RoomFilter from './RoomFilter.jsx';
+import BookingDetailPanel from '../BookingDetail/BookingDetailPanel.jsx';
 import useBookings from '../../hooks/useBookings.js';
+import useBookingActions from '../../hooks/useBookingActions.js';
 import './Calendar.css';
 
 const ALL_ROOMS = ['california', 'nevada', 'oregon'];
@@ -80,6 +82,7 @@ export default function Calendar() {
   const [view, setView] = useState('day');
   const [currentDate, setCurrentDate] = useState(today);
   const [activeRooms, setActiveRooms] = useState([...ALL_ROOMS]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   // Month-view specific state
   const [viewYear, setViewYear] = useState(todayYear);
@@ -99,7 +102,22 @@ export default function Calendar() {
     fetchBounds = monthBounds(viewYear, viewMonth);
   }
 
-  const { bookings } = useBookings({ from: fetchBounds.from, to: fetchBounds.to });
+  const { bookings, refetch } = useBookings({ from: fetchBounds.from, to: fetchBounds.to });
+
+  const { delete: deleteBooking, patch } = useBookingActions({
+    onSuccess: () => {
+      setSelectedBooking(null);
+      if (refetch) refetch();
+    },
+  });
+
+  const handleCancelBooking = (id) => {
+    deleteBooking(id);
+  };
+
+  const handleEditSave = (id, body) => {
+    patch(id, body);
+  };
 
   const navigateDay = (delta) => {
     const next = addDays(currentDate, delta);
@@ -209,10 +227,20 @@ export default function Calendar() {
 
       <div className="calendar-body">
         {view === 'day' && (
-          <DayView date={currentDate} bookings={bookings} filteredRooms={activeRooms} />
+          <DayView
+            date={currentDate}
+            bookings={bookings}
+            filteredRooms={activeRooms}
+            onBookingClick={setSelectedBooking}
+          />
         )}
         {view === 'week' && (
-          <WeekView weekStart={weekStart} bookings={bookings} filteredRooms={activeRooms} />
+          <WeekView
+            weekStart={weekStart}
+            bookings={bookings}
+            filteredRooms={activeRooms}
+            onBookingClick={setSelectedBooking}
+          />
         )}
         {view === 'month' && (
           <MonthView
@@ -226,6 +254,15 @@ export default function Calendar() {
           />
         )}
       </div>
+
+      {selectedBooking && (
+        <BookingDetailPanel
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+          onCancelConfirm={handleCancelBooking}
+          onEditSave={(body) => handleEditSave(selectedBooking.id, body)}
+        />
+      )}
     </div>
   );
 }
