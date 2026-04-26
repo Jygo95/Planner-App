@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import DayView from './DayView.jsx';
 import WeekView from './WeekView.jsx';
+import MonthView from './MonthView.jsx';
 import RoomFilter from './RoomFilter.jsx';
 import useBookings from '../../hooks/useBookings.js';
 import './Calendar.css';
 
 const ALL_ROOMS = ['california', 'nevada', 'oregon'];
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 function getTodayRiga() {
   return new Intl.DateTimeFormat('en-CA', {
@@ -43,20 +59,47 @@ function weekBounds(weekStart) {
   return { from, to };
 }
 
+function monthBounds(year, month) {
+  const mm = String(month + 1).padStart(2, '0');
+  const from = `${year}-${mm}-01T00:00:00Z`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const dd = String(lastDay).padStart(2, '0');
+  const to = `${year}-${mm}-${dd}T23:59:59Z`;
+  return { from, to };
+}
+
+function parseYearMonth(dateStr) {
+  const [y, m] = dateStr.split('-').map(Number);
+  return { year: y, month: m - 1 }; // month is 0-indexed
+}
+
 export default function Calendar() {
   const today = getTodayRiga();
+  const { year: todayYear, month: todayMonth } = parseYearMonth(today);
+
   const [view, setView] = useState('day');
   const [currentDate, setCurrentDate] = useState(today);
   const [activeRooms, setActiveRooms] = useState([...ALL_ROOMS]);
+
+  // Month-view specific state
+  const [viewYear, setViewYear] = useState(todayYear);
+  const [viewMonth, setViewMonth] = useState(todayMonth);
 
   const minDate = addDays(today, -365);
   const maxDate = addDays(today, 90);
 
   const weekStart = getWeekStart(currentDate);
 
-  const { from, to } = view === 'day' ? dayBounds(currentDate) : weekBounds(weekStart);
+  let fetchBounds;
+  if (view === 'day') {
+    fetchBounds = dayBounds(currentDate);
+  } else if (view === 'week') {
+    fetchBounds = weekBounds(weekStart);
+  } else {
+    fetchBounds = monthBounds(viewYear, viewMonth);
+  }
 
-  const { bookings } = useBookings({ from, to });
+  const { bookings } = useBookings({ from: fetchBounds.from, to: fetchBounds.to });
 
   const navigateDay = (delta) => {
     const next = addDays(currentDate, delta);
@@ -71,7 +114,37 @@ export default function Calendar() {
     setCurrentDate(next);
   };
 
+  const navigateMonth = (delta) => {
+    let newYear = viewYear;
+    let newMonth = viewMonth + delta;
+    if (newMonth > 11) {
+      newMonth -= 12;
+      newYear += 1;
+    } else if (newMonth < 0) {
+      newMonth += 12;
+      newYear -= 1;
+    }
+    // Bounds check: don't go before minDate month or after maxDate month
+    const newMonthStr = `${newYear}-${String(newMonth + 1).padStart(2, '0')}-01`;
+    const maxMonthStr = maxDate.slice(0, 7) + '-01';
+    const minMonthStr = minDate.slice(0, 7) + '-01';
+    if (newMonthStr > maxMonthStr || newMonthStr < minMonthStr) return;
+    setViewYear(newYear);
+    setViewMonth(newMonth);
+  };
+
   const goToday = () => setCurrentDate(today);
+  const goThisMonth = () => {
+    setViewYear(todayYear);
+    setViewMonth(todayMonth);
+  };
+
+  const handleMonthDayClick = (dateStr) => {
+    setCurrentDate(dateStr);
+    setView('day');
+  };
+
+  const monthLabel = `${MONTH_NAMES[viewMonth]} ${viewYear}`;
 
   return (
     <div className="calendar-container">
@@ -83,10 +156,13 @@ export default function Calendar() {
           <button className={view === 'week' ? 'active' : ''} onClick={() => setView('week')}>
             Week
           </button>
+          <button className={view === 'month' ? 'active' : ''} onClick={() => setView('month')}>
+            Month
+          </button>
         </div>
 
         <div className="nav-controls">
-          {view === 'day' ? (
+          {view === 'day' && (
             <>
               <button data-testid="nav-prev-day" onClick={() => navigateDay(-1)}>
                 ‹
@@ -97,7 +173,8 @@ export default function Calendar() {
               </button>
               <button onClick={goToday}>Today</button>
             </>
-          ) : (
+          )}
+          {view === 'week' && (
             <>
               <button data-testid="nav-prev-week" onClick={() => navigateWeek(-1)}>
                 ‹
@@ -111,16 +188,42 @@ export default function Calendar() {
               <button onClick={goToday}>This week</button>
             </>
           )}
+          {view === 'month' && (
+            <>
+              <button data-testid="nav-prev-month" onClick={() => navigateMonth(-1)}>
+                ‹
+              </button>
+              <span data-testid="month-label" className="current-date-label month-label">
+                {monthLabel}
+              </span>
+              <button data-testid="nav-next-month" onClick={() => navigateMonth(1)}>
+                ›
+              </button>
+              <button onClick={goThisMonth}>This month</button>
+            </>
+          )}
         </div>
 
         <RoomFilter activeRooms={activeRooms} onFilterChange={setActiveRooms} />
       </div>
 
       <div className="calendar-body">
-        {view === 'day' ? (
+        {view === 'day' && (
           <DayView date={currentDate} bookings={bookings} filteredRooms={activeRooms} />
-        ) : (
+        )}
+        {view === 'week' && (
           <WeekView weekStart={weekStart} bookings={bookings} filteredRooms={activeRooms} />
+        )}
+        {view === 'month' && (
+          <MonthView
+            year={viewYear}
+            month={viewMonth}
+            bookings={bookings}
+            filteredRooms={activeRooms}
+            onDayClick={handleMonthDayClick}
+            minDate={minDate}
+            maxDate={maxDate}
+          />
         )}
       </div>
     </div>
