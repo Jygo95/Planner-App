@@ -1,16 +1,16 @@
 # Current Feature
 
 **Status:** tests-pending
-**Branch:** feat/bookings-api
+**Branch:** feat/manual-form
 **Phase:** increment
 
 ## Spec
 
-### Increment 03 — Bookings API
+### Increment 04 — Manual Form
 
-Full booking CRUD with deterministic conflict check in a SQLite transaction, all server-side booking rules, append-only booking_log writes, and correct 409 shape. No witty LLM text yet.
+Manual booking form UI, confirmation card, "Switch to manual" affordance, wired to POST /api/bookings.
 
-**Full spec:** `.workflow/tasks/03-bookings-api.md`
+**Full spec:** `.workflow/tasks/04-manual-form.md`
 
 ## State machine
 
