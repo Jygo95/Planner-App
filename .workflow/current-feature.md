@@ -1,23 +1,23 @@
 # Current Feature
 
-**Status:** green
-**Branch:** feat/manual-form
+**Status:** tests-pending
+**Branch:** feat/calendar-day-week
 **Phase:** increment
 
 ## Spec
 
-### Increment 04 — Manual Form
+### Increment 05 — Calendar Day + Week Views
 
-Manual booking form UI, confirmation card, "Switch to manual" affordance, wired to POST /api/bookings.
+Day and Week calendar views, multi-room columns, current-time indicator, room filter, navigation, and date bounds.
 
-**Full spec:** `.workflow/tasks/04-manual-form.md`
+**Full spec:** `.workflow/tasks/05-calendar-day-week.md`
 
 ## State machine
 
 - queued
-- tests-pending
+- tests-pending  ← **current**
 - red
-- green  ← **current**
+- green
 - review
 - main-validation
 - merged
