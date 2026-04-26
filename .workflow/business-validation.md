@@ -121,3 +121,33 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Chat history continuity (mode switch): task 10 (chat UI).
 
 **Status: VALIDATED ✓**
+
+---
+
+## 05 — calendar-day-week — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-CAL-1 (day+week), FR-CAL-2, FR-CAL-3, FR-CAL-4
+
+### Validation
+
+- **FR-CAL-1 (day+week views):** DayView renders 3 room columns; WeekView renders 7-day table. Both show BookingBlock per matching booking. ✓
+- **FR-CAL-2 (time indicator ≤ 1 min):** `TimeIndicator` consumes `useRigaTime` (30s interval). Red horizontal line positioned at `(rigaMinutes/1440)*100%`. ✓
+- **FR-CAL-3 (navigation bounds −365d/+90d):** `Calendar.jsx` clamps day and week navigation. Week nav additionally enforces `getWeekStart(next) >= minDate`. Bounds applied before state update. ✓
+- **FR-CAL-4 (room filter):** `RoomFilter` renders 3 checkboxes, all checked by default. `filteredRooms` propagated to both `DayView` and `WeekView`. Column hides when unchecked (E2E verified). Colour-coding: california=blue, nevada=green, oregon=amber. ✓
+- **Booking description not in BlockBlock:** `BookingBlock` renders booker name + time range only. Description excluded. ✓
+- **Timezone correctness:** All display via `Intl.DateTimeFormat` with `timeZone: 'Europe/Riga'`. API calls use UTC ISO strings. ✓
+
+### Constraints confirmed
+- No external calendar library — plain CSS + React. ✓
+- No TypeScript, no Tailwind, no CSS-in-JS. ✓
+- `Calendar` wired into `App.jsx` `.calendar-area`. ✓
+- `useRigaTime` consumed (not dead code). ✓
+
+### Deferrals
+- Month view: task 06.
+- Booking detail panel (click → edit/cancel): task 07.
+- FR-CAL-5 (click event to detail panel): task 07.
+- FR-CAL-6 (edit/cancel from calendar): task 07.
+
+**Status: VALIDATED ✓**

@@ -1,16 +1,16 @@
 # Current Feature
 
 **Status:** tests-pending
-**Branch:** feat/calendar-day-week
+**Branch:** feat/calendar-month
 **Phase:** increment
 
 ## Spec
 
-### Increment 05 — Calendar Day + Week Views
+### Increment 06 — Calendar Month View
 
-Day and Week calendar views, multi-room columns, current-time indicator, room filter, navigation, and date bounds.
+Month view with booking density indicators, navigation, and view picker updated to include Month.
 
-**Full spec:** `.workflow/tasks/05-calendar-day-week.md`
+**Full spec:** `.workflow/tasks/06-calendar-month.md`
 
 ## State machine
 
