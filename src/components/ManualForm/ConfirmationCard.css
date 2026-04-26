@@ -1,7 +1,11 @@
 .confirmation-card {
   padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-shadow);
   max-width: 480px;
 }
 

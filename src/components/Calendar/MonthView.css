@@ -2,6 +2,12 @@
   height: 100%;
   overflow: auto;
   padding: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-shadow);
 }
 
 .month-view-grid {

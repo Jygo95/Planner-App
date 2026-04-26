@@ -49,6 +49,7 @@ export default function BookingBlock({ booking, onClick }) {
       onClick={onClick}
       role="button"
       tabIndex={0}
+      aria-label={`${booking.booker_name} ${booking.room_id} ${formatTime(booking.start_utc)}–${formatTime(booking.end_utc)}`}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && onClick) onClick(e);
       }}
