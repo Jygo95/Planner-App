@@ -2,6 +2,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Chat UI', () => {
   test.beforeEach(async ({ page }) => {
+    // Default: LLM available so ChatInput is visible in CI (no API key set there)
+    await page.route('/api/health', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, llmAvailable: true, dailyCapRemaining: 500 }),
+      });
+    });
     await page.goto('/');
   });
 
