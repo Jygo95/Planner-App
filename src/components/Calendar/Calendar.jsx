@@ -75,12 +75,19 @@ function parseYearMonth(dateStr) {
   return { year: y, month: m - 1 }; // month is 0-indexed
 }
 
+function getInitialDate(today) {
+  const params = new URLSearchParams(window.location.search);
+  const dateParam = params.get('date');
+  if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return dateParam;
+  return today;
+}
+
 export default function Calendar() {
   const today = getTodayRiga();
   const { year: todayYear, month: todayMonth } = parseYearMonth(today);
 
   const [view, setView] = useState('day');
-  const [currentDate, setCurrentDate] = useState(today);
+  const [currentDate, setCurrentDate] = useState(() => getInitialDate(today));
   const [activeRooms, setActiveRooms] = useState([...ALL_ROOMS]);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
