@@ -15,8 +15,8 @@ LLM module with parseBookingRequest, generateWittyResponse, POST /api/chat, syst
 ## State machine
 
 - queued
-- tests-pending  ← **current**
-- red
+- tests-pending
+- red  ← **current**
 - green
 - review
 - main-validation
