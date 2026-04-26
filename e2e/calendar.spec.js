@@ -33,4 +33,17 @@ test.describe('Calendar day view', () => {
   test('time indicator element is present in day view', async ({ page }) => {
     await expect(page.locator('[data-testid="time-indicator"]')).toBeVisible();
   });
+
+  test('unchecking california filter hides the california room column', async ({ page }) => {
+    await expect(page.locator('[data-testid="day-view"]')).toBeVisible();
+
+    const californiaCheckbox = page
+      .locator('[data-testid="room-filter"] label')
+      .filter({ hasText: /california/i })
+      .locator('input[type="checkbox"]');
+
+    await californiaCheckbox.uncheck();
+
+    await expect(page.locator('[data-testid="room-column-california"]')).not.toBeVisible();
+  });
 });

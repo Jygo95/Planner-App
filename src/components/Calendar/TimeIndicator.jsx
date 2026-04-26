@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useRigaTime } from '../../hooks/useRigaTime.js';
 
 function getRigaMinutes(date) {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -13,19 +13,9 @@ function getRigaMinutes(date) {
 }
 
 export default function TimeIndicator({ currentMinutes }) {
-  const [internalMinutes, setInternalMinutes] = useState(() => getRigaMinutes(new Date()));
+  const rigaTime = useRigaTime();
 
-  useEffect(() => {
-    if (currentMinutes !== undefined) return;
-
-    const interval = setInterval(() => {
-      setInternalMinutes(getRigaMinutes(new Date()));
-    }, 30 * 1000);
-
-    return () => clearInterval(interval);
-  }, [currentMinutes]);
-
-  const minutes = currentMinutes !== undefined ? currentMinutes : internalMinutes;
+  const minutes = currentMinutes !== undefined ? currentMinutes : getRigaMinutes(rigaTime);
   const top = `${(minutes / 1440) * 100}%`;
 
   return (

@@ -67,6 +67,7 @@ export default function Calendar() {
   const navigateWeek = (delta) => {
     const next = addDays(currentDate, delta * 7);
     if (next < minDate || next > maxDate) return;
+    if (getWeekStart(next) < minDate) return;
     setCurrentDate(next);
   };
 

@@ -20,8 +20,13 @@ function getRigaDateStr(utcStr) {
   return parts;
 }
 
-export default function WeekView({ weekStart, bookings, onBookingClick }) {
+export default function WeekView({ weekStart, bookings, filteredRooms, onBookingClick }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const visibleBookings =
+    filteredRooms && filteredRooms.length > 0
+      ? bookings.filter((b) => filteredRooms.includes(b.room_id))
+      : bookings;
 
   return (
     <div data-testid="week-view" className="week-view">
@@ -38,7 +43,9 @@ export default function WeekView({ weekStart, bookings, onBookingClick }) {
         <tbody>
           <tr>
             {days.map((day) => {
-              const dayBookings = bookings.filter((b) => getRigaDateStr(b.start_utc) === day);
+              const dayBookings = visibleBookings.filter(
+                (b) => getRigaDateStr(b.start_utc) === day
+              );
               return (
                 <td
                   key={day}
