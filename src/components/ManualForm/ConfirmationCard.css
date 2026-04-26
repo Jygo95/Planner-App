@@ -1,0 +1,24 @@
+.confirmation-card {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-width: 480px;
+}
+
+.confirmation-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.confirmation-card__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time-adjusted-note {
+  color: #b45309;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}

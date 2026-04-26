@@ -51,3 +51,42 @@
 - Chat dock and calendar area are placeholder divs only — content filled by tasks 05–10.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 03 — bookings-api — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** C-4, C-7, FR-CAL-6, FR-CONF-1, FR-CONF-2, FR-LOG-1–3, FR-RULE-1–5
+
+### Validation
+
+- **C-4 (conflict check in transaction):** `checkConflict` SQL runs inside the same `db.transaction()` as INSERT/UPDATE — no TOCTOU window. Verified in `conflictCheck.js` and `bookings.js`. ✓
+- **C-7 (booker_name free-text):** `booker_name` stored trimmed, no auth lookup, length ≥ 1 validated. ✓
+- **FR-CONF-1 (409 shape):** Returns `{ error: 'conflict', conflicting: { id, room_id, start_utc, end_utc, booker_name } }`. No `description` field. ✓
+- **FR-CONF-2 (privacy):** `checkConflict` SQL SELECT excludes `description`. Conflicting payload never exposes it. ✓
+- **FR-LOG-1 (create log):** `appendLog(db, 'create', booking)` called after successful INSERT. ✓
+- **FR-LOG-2 (no route reads booking_log):** No SELECT on `booking_log` anywhere in production routes. ✓
+- **FR-LOG-3 (cancel snapshot before delete):** `existing` row fetched → `appendLog(db, 'cancel', existing)` → then DELETE. ✓
+- **FR-RULE-1 (too-short < 10 min):** 400 `{ error: 'too-short' }`. ✓
+- **FR-RULE-2 (too-long > 4 hr):** 400 `{ error: 'too-long', message: '...' }`. ✓
+- **FR-RULE-3 (start in past):** 400 `{ error: 'start_in_past' }`. ✓
+- **FR-RULE-4 (5-min rounding):** `roundToFiveMin` applied to start/end before persistence; `timeAdjusted: true` in response when rounding occurs. ✓
+- **FR-RULE-5 (> 90 days):** 400 `{ error: 'too-far' }`. ✓
+
+### Reviewer override rationale
+
+Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 status for rule violations. Both contradict the task spec (`.workflow/tasks/03-bookings-api.md`) which explicitly specifies lowercase codes and 400. Tests written from spec confirm lowercase/400. Override applied per Main agent authority.
+
+### Constraints confirmed
+- No `booking_log` read endpoint. ✓
+- PATCH self-exclusion uses `excludeId = id` in `checkConflict`. ✓
+- All timestamps stored as ISO 8601 UTC via `.toISOString()`. ✓
+- All IDs via `uuidv4()`. ✓
+
+### Deferrals
+- FR-RULE-1 witty text: task 12.
+- FR-RULE-5 witty text: task 12.
+- FR-CAL-6 (edit from calendar): task 07.
+
+**Status: VALIDATED ✓**
