@@ -24,10 +24,11 @@
 }
 
 .settings-option:hover {
-  background: #f0f0f0;
+  background: var(--glass-bg);
+  filter: brightness(1.3);
 }
 
 .settings-option.selected {
   font-weight: bold;
-  background: #e8e8f0;
+  background: rgba(96, 165, 250, 0.2);
 }
