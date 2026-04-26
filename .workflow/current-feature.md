@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** tests-pending
+**Status:** red
 **Branch:** feat/booking-detail-panel
 **Phase:** increment
 
@@ -15,8 +15,8 @@ Click a calendar event → detail panel showing full booking info. Edit and Canc
 ## State machine
 
 - queued
-- tests-pending  ← **current**
-- red
+- tests-pending
+- red  ← **current**
 - green
 - review
 - main-validation
