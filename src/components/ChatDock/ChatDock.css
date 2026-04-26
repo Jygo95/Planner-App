@@ -87,7 +87,7 @@
 .chat-input__textarea {
   width: 100%;
   resize: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-input);
   color: inherit;

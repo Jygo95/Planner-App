@@ -48,6 +48,7 @@ export default function ChatDock() {
                   });
                   if (res.status === 201) {
                     resetConversation();
+                    setInputValue('');
                   }
                 } catch {
                   // ignore

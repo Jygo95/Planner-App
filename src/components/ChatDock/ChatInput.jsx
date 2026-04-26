@@ -1,4 +1,4 @@
-export default function ChatInput({ value, onChange, onSend, loading }) {
+export default function ChatInput({ value, onChange, onSend, loading, onFocus }) {
   const count = value.length;
   const isWarn = count >= 270;
 
@@ -16,6 +16,7 @@ export default function ChatInput({ value, onChange, onSend, loading }) {
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
+        onFocus={onFocus}
         maxLength={300}
         placeholder="Type a message…"
         rows={3}
