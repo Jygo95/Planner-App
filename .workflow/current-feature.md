@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** tests-pending
+**Status:** green
 **Branch:** feat/manual-form
 **Phase:** increment
 
@@ -15,9 +15,9 @@ Manual booking form UI, confirmation card, "Switch to manual" affordance, wired 
 ## State machine
 
 - queued
-- tests-pending  ← **current**
+- tests-pending
 - red
-- green
+- green  ← **current**
 - review
 - main-validation
 - merged
