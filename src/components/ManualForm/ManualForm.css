@@ -24,6 +24,17 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
   box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.manual-form::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-specular);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .manual-form__field {

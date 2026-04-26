@@ -7,6 +7,17 @@
   border-radius: var(--radius-card);
   box-shadow: var(--glass-shadow);
   max-width: 480px;
+  position: relative;
+  overflow: hidden;
+}
+
+.confirmation-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-specular);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .confirmation-card dl {

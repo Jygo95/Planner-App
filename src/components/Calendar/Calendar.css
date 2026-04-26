@@ -9,6 +9,17 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
   box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-specular);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .calendar-toolbar {
@@ -28,10 +39,11 @@
 
 .view-picker button {
   padding: 4px 12px;
-  border: 1px solid #ccc;
-  background: #fff;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-button);
+  color: inherit;
   cursor: pointer;
-  border-radius: 4px;
 }
 
 .view-picker button.active {
@@ -48,10 +60,11 @@
 
 .nav-controls button {
   padding: 4px 8px;
-  border: 1px solid #ccc;
-  background: #fff;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-button);
+  color: inherit;
   cursor: pointer;
-  border-radius: 4px;
 }
 
 .current-date-label {
@@ -99,7 +112,7 @@
 .room-column {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #eee;
+  border-right: 1px solid var(--glass-border);
 }
 
 .room-column:last-child {
@@ -111,7 +124,7 @@
   font-size: 13px;
   font-weight: 600;
   text-transform: capitalize;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
@@ -123,18 +136,18 @@
 
 /* Room colour coding */
 .room-column-blue .room-column-header {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.25);
+  color: #e0e7ff;
 }
 
 .room-column-green .room-column-header {
-  background: #dcfce7;
-  color: #15803d;
+  background: rgba(16, 185, 129, 0.25);
+  color: #d1fae5;
 }
 
 .room-column-amber .room-column-header {
-  background: #fef3c7;
-  color: #b45309;
+  background: rgba(245, 158, 11, 0.25);
+  color: #fef3c7;
 }
 
 /* Booking blocks */
@@ -195,12 +208,13 @@
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid #ddd;
-  background: #f9f9f9;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: inherit;
 }
 
 .week-day-cell {
-  border: 1px solid #ddd;
+  border: 1px solid var(--glass-border);
   min-height: 120px;
   height: 120px;
   vertical-align: top;
