@@ -1,22 +1,22 @@
 # Current Feature
 
-**Status:** tests-pending
-**Branch:** feat/calendar-month
+**Status:** red
+**Branch:** feat/booking-detail-panel
 **Phase:** increment
 
 ## Spec
 
-### Increment 06 — Calendar Month View
+### Increment 07 — Booking Detail Panel
 
-Month view with booking density indicators, navigation, and view picker updated to include Month.
+Click a calendar event → detail panel showing full booking info. Edit and Cancel actions. booking_log writes.
 
-**Full spec:** `.workflow/tasks/06-calendar-month.md`
+**Full spec:** `.workflow/tasks/07-booking-detail-panel.md`
 
 ## State machine
 
 - queued
-- tests-pending  ← **current**
-- red
+- tests-pending
+- red  ← **current**
 - green
 - review
 - main-validation
