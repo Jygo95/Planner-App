@@ -90,3 +90,34 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - FR-CAL-6 (edit from calendar): task 07.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 04 — manual-form — 2026-04-26
+
+**Merge commit:** pending
+**PRD refs covered:** FR-MAN-1–5, FR-CHAT-7
+
+### Validation
+
+- **FR-MAN-1 (affordance unobtrusive):** "Switch to manual" button renders on initial load inside `.chat-dock` with low-prominence CSS class. Does not compete with chat visually. ✓
+- **FR-MAN-2 (all 6 fields):** `room` select with 3 options, `date` date input, `startTime`/`endTime` time inputs (step=300), `bookerName` text input, `description` textarea. Non-optional fields carry `required` attribute. ✓
+- **FR-MAN-3 (client-side validation):** `handleSubmit` enforces: duration ≥ 10 min, duration ≤ 4 hr, start not in past (Europe/Riga via Intl). Inline error shown; confirmation card not reached. ✓
+- **FR-MAN-4 (confirmation card before write):** POST only fires from `handleConfirm` after user sees `ConfirmationCard`. `handleSubmit` sets `pendingBooking` and returns without POSTing. ✓
+- **FR-MAN-5 ("Back to chat"):** Button present in form; `onClick` sets `showForm = false`. ✓
+- **FR-CHAT-7 (confirmation card fields):** Room, date, start/end, duration, booker name, description (conditional), time-adjusted note (conditional). ✓
+- **FR-RULE-4 client detection:** `timeAdjusted` computed by comparing raw vs rounded times client-side. Not hardcoded. ✓
+- **409 inline message:** "That slot was just taken by [booker]." — `bookerName` from conflict response. ✓
+- **No API key in frontend:** All fetches to relative `/api/bookings`. ✓
+- **No external date library:** Intl API + native Date only. ✓
+
+### Constraints confirmed
+- No TypeScript, no Tailwind, no CSS-in-JS. ✓
+- ManualForm wired in App.jsx inside `.chat-dock`. ✓
+
+### Deferrals
+- Full toast system for "Booking confirmed": task 18.
+- FR-MAN-3 mirroring witty rejection text: tasks 12/14.
+- Chat history continuity (mode switch): task 10 (chat UI).
+
+**Status: VALIDATED ✓**
