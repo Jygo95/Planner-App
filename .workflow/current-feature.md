@@ -1,22 +1,22 @@
 # Current Feature
 
 **Status:** tests-pending
-**Branch:** feat/liquid-glass-css
+**Branch:** feat/llm-adapter
 **Phase:** increment
 
 ## Spec
 
-### Increment 08 — Liquid Glass CSS
+### Increment 09 — LLM Adapter
 
-Full Liquid Glass visual layer across all components and viewports, accessibility pass.
+LLM module with parseBookingRequest, generateWittyResponse, POST /api/chat, system prompt, token budgets. Health endpoint updated.
 
-**Full spec:** `.workflow/tasks/08-liquid-glass-css.md`
+**Full spec:** `.workflow/tasks/09-llm-adapter.md`
 
 ## State machine
 
 - queued
-- tests-pending  ← **current**
-- red
+- tests-pending
+- red  ← **current**
 - green
 - review
 - main-validation
