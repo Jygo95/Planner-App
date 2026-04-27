@@ -1,23 +1,23 @@
 # Current Feature
 
-**Status:** main-validation
-**Branch:** feat/chat-ui
+**Status:** tests-pending
+**Branch:** feat/llm-scheduling-brain
 **Phase:** increment
 
 ## Spec
 
-### Increment 10 — Chat UI
+### Increment 11 — LLM Scheduling Brain
 
-Chat input dock (primary UI), 300-char limit, multi-turn display, confirmation card in chat flow, LLM-unavailable and parse-failure states, conversation reset on success.
+bookings_for_day injection, room recommendation rules, conflict response shape, booker name verbatim in system prompt.
 
-**Full spec:** `.workflow/tasks/10-chat-ui.md`
+**Full spec:** `.workflow/tasks/11-llm-scheduling-brain.md`
 
 ## State machine
 
 - queued
 - tests-pending
 - red
-- green
+- green  ← **current**
 - review
-- main-validation  ← **current**
+- main-validation
 - merged

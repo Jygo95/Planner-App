@@ -20,3 +20,21 @@
 - Red confirmed: yes — all 6 Vitest suites fail with "Failed to resolve import" (production files do not exist)
 - Vitest output: "Test Files 6 failed | 26 passed (32)" — existing tests unaffected
 - Status: red
+
+## 2026-04-26 — llm-scheduling-brain — round 1
+- Tests added:
+  - backend/src/routes/chat.test.js (3 new tests in "POST /api/chat — bookings_for_day injection")
+  - backend/src/llm/index.test.js (4 new tests in "parseBookingRequest — system prompt scheduling content")
+  - e2e/llm-scheduling.spec.js (1 new Playwright test — not run in Vitest)
+- New tests RED (5 failing):
+  - chat.test.js: "bookings_for_day populated when previous parsedFields has start_utc" — production always returns [] not queried from DB
+  - chat.test.js: "description field absent from bookings_for_day entries" — no DB query so no entries to check (length > 0 fails)
+  - llm/index.test.js: "system prompt contains bookings_for_day section with booking data (no description)" — "Alice" not injected into system prompt
+  - llm/index.test.js: "system prompt contains conflict response format (booker, time-until-free, alternatives)" — "until" + "alternatives/pick one" absent
+  - llm/index.test.js: "system prompt instructs booker name verbatim" — neither "verbatim" nor "exactly as provided" in current prompt
+- New tests GREEN (2 — acceptable, features partially pre-existed):
+  - chat.test.js: "bookings_for_day is empty array when no start_utc" — production already defaults to []
+  - llm/index.test.js: "system prompt contains room recommendation rules with mismatch guidance" — existing prompt already says "Flag equipment mismatches"
+- Existing tests: 215 passing — no regressions
+- Vitest output: "Test Files 2 failed | 30 passed (32), Tests 5 failed | 215 passed (220)"
+- Status: red
