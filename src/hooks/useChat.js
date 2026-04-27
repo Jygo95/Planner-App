@@ -15,12 +15,23 @@ export default function useChat() {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: nextMessages }),
+          body: JSON.stringify({
+            messages: nextMessages.map(({ role, content, parsedFields }) => ({
+              role,
+              content,
+              ...(parsedFields ? { parsedFields } : {}),
+            })),
+          }),
         });
 
         const data = await response.json();
-        const assistantContent = data.reply ?? data.message ?? '';
-        const assistantMessage = { role: 'assistant', content: assistantContent, _raw: data };
+        const assistantContent = data.reply ?? data.message ?? data.assistantMessage ?? '';
+        const assistantMessage = {
+          role: 'assistant',
+          content: assistantContent,
+          ...(data.parsedFields ? { parsedFields: data.parsedFields } : {}),
+          _raw: data,
+        };
         setMessages((prev) => [...prev, assistantMessage]);
       } finally {
         setLoading(false);

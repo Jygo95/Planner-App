@@ -37,27 +37,30 @@ export default function ChatDock() {
         return {
           ...msg,
           content: (
-            <ChatConfirmCard
-              {...raw.parsedFields}
-              onConfirm={async () => {
-                try {
-                  const res = await fetch('/api/bookings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(raw.parsedFields),
-                  });
-                  if (res.status === 201) {
-                    resetConversation();
-                    setInputValue('');
+            <>
+              {msg.content && <p style={{ margin: '0 0 8px' }}>{msg.content}</p>}
+              <ChatConfirmCard
+                {...raw.parsedFields}
+                onConfirm={async () => {
+                  try {
+                    const res = await fetch('/api/bookings', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(raw.parsedFields),
+                    });
+                    if (res.status === 201) {
+                      resetConversation();
+                      setInputValue('');
+                    }
+                  } catch {
+                    // ignore
                   }
-                } catch {
-                  // ignore
-                }
-              }}
-              onCancel={() => {
-                sendMessage(CANCEL_MSG);
-              }}
-            />
+                }}
+                onCancel={() => {
+                  sendMessage(CANCEL_MSG);
+                }}
+              />
+            </>
           ),
         };
       }
