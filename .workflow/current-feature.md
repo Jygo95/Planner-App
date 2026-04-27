@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** tests-pending
+**Status:** main-validation
 **Branch:** feat/llm-scheduling-brain
 **Phase:** increment
 
@@ -17,7 +17,7 @@ bookings_for_day injection, room recommendation rules, conflict response shape, 
 - queued
 - tests-pending
 - red
-- green  ← **current**
+- green
 - review
-- main-validation
+- main-validation  ← **current**
 - merged

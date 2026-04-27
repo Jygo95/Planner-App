@@ -265,3 +265,31 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Full toast on booking success: task 18.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 11 — llm-scheduling-brain — 2026-04-27
+
+**Merge commit:** pending
+**PRD refs covered:** FR-LLM-1, FR-LLM-2, FR-LLM-3, FR-LLM-4
+
+### Validation
+
+- **FR-LLM-1 (bookings_for_day injection):** `POST /api/chat` calls `extractStartUtcFromHistory(messages)` to find any assistant `parsedFields.start_utc`; if found, queries `SELECT id, room_id, start_utc, end_utc, booker_name FROM bookings WHERE start_utc >= ? AND start_utc < ?` for that calendar day. Result passed as `contextSnapshot.bookings_for_day`. Falls back to `[]` when no date resolved. ✓
+- **FR-LLM-1 (description absent):** SQL SELECT explicitly enumerates 5 columns — `description` is not among them. Unit test seeds a booking with description and asserts the field is absent from the returned entry. ✓
+- **FR-LLM-2 (room recommendation):** System prompt rule 8 instructs: only suggest a room if user hasn't specified one; flag equipment mismatches with example ("California doesn't have a TV…"); explicit room choice always wins. ✓
+- **FR-LLM-3 (booker name verbatim):** System prompt rule 10: "Always repeat the booker name exactly as provided by the user in parsedFields.booker_name. Do not correct spelling or capitalisation." ✓
+- **FR-LLM-4 (conflict response shape):** System prompt rule 9 prescribes exact format: "[Booker name] has the room until [HH:MM]. Available nearby: [time], [time], [time]. Pick one or suggest a different time." Description explicitly prohibited from conflict responses. ✓
+- **C-4 (advisory only):** `chat.js` is read-only — queries for context, never writes. `checkConflict` in `bookings.js` inside DB transaction is unchanged. LLM advice is advisory; deterministic conflict check still runs on every write. ✓
+
+### Constraints confirmed
+- No new npm packages. ✓
+- `description` never appears in any LLM-facing payload. ✓
+- `anthropic.js` adapter unchanged. ✓
+
+### Deferrals
+- Witty rejection text integration: task 12.
+- Session + daily cap enforcement: task 13.
+- 409 conflict flow in chat (LLM-shaped conflict response): task 14.
+
+**Status: VALIDATED ✓**
