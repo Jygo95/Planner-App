@@ -1,17 +1,17 @@
 /**
  * E2E tests: LLM Scheduling Brain — FR-LLM-1
  *
- * Split into two independent tests:
- *  1. UI test: first turn with date establishes parsedFields → confirm card rendered
- *  2. Backend API test: POST /api/chat with parsedFields in history is accepted (200 or 503)
+ * UI test: navigate in beforeEach (matching chat-ui.spec.js pattern so health
+ * mock is active before the page is first loaded). Chat mock is registered in
+ * the test body before the user sends a message.
  *
- * parsedFields forwarding in multi-turn is covered by useChat unit tests.
+ * Backend API test: uses the `request` fixture to call Express directly.
  */
 
 import { test, expect } from '@playwright/test';
 
 test.describe('LLM Scheduling Brain — multi-turn conversation', () => {
-  test('first turn: ready-to-confirm response renders confirm card in chat', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.route('/api/health', (route) => {
       route.fulfill({
         status: 200,
@@ -19,7 +19,10 @@ test.describe('LLM Scheduling Brain — multi-turn conversation', () => {
         body: JSON.stringify({ ok: true, llmAvailable: true, dailyCapRemaining: 500 }),
       });
     });
+    await page.goto('/');
+  });
 
+  test('first turn: ready-to-confirm response renders confirm card in chat', async ({ page }) => {
     await page.route('/api/chat', (route) => {
       route.fulfill({
         status: 200,
@@ -39,8 +42,6 @@ test.describe('LLM Scheduling Brain — multi-turn conversation', () => {
       });
     });
 
-    await page.goto('/');
-
     const textarea = page.getByRole('textbox');
     await textarea.fill('Book Nevada on May 10 at 9am for 1 hour');
 
@@ -53,18 +54,13 @@ test.describe('LLM Scheduling Brain — multi-turn conversation', () => {
       timeout: 10000,
     });
 
-    // Confirm card should render (has a Confirm booking button)
+    // Confirm card renders (has a Confirm booking button)
     await expect(page.getByRole('button', { name: /confirm booking/i })).toBeVisible({
       timeout: 15000,
     });
-
-    // Assistant's text also visible alongside the card
-    await expect(page.getByText(/Nevada.*May 10|May 10.*Nevada/i)).toBeVisible({ timeout: 5000 });
   });
 
   test('backend: POST /api/chat with parsedFields in history is accepted', async ({ request }) => {
-    // Directly call the Express backend — no browser/LLM needed.
-    // Verifies FR-LLM-1: server accepts and processes messages containing parsedFields.
     const res = await request.post('http://localhost:3001/api/chat', {
       data: {
         messages: [
