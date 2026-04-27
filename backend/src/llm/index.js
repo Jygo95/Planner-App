@@ -16,7 +16,7 @@ const MAX_HISTORY_MESSAGES = 3;
  * @returns {string}
  */
 function buildSystemPrompt(contextSnapshot) {
-  const { nowRiga, rooms } = contextSnapshot;
+  const { nowRiga, rooms, bookings_for_day } = contextSnapshot;
 
   const roomsText = (rooms || ROOMS)
     .map(
@@ -26,12 +26,23 @@ function buildSystemPrompt(contextSnapshot) {
     )
     .join('\n');
 
+  const bookings = bookings_for_day || [];
+  const bookingsText =
+    bookings.length > 0
+      ? bookings
+          .map((b) => `- ${b.room_id}: ${b.start_utc} – ${b.end_utc} (${b.booker_name})`)
+          .join('\n')
+      : 'No bookings yet for this date.';
+
   return `You are a meeting-room booking assistant for an office in Riga, Latvia.
 
 CURRENT TIME (Europe/Riga): ${nowRiga}
 
 AVAILABLE ROOMS:
 ${roomsText}
+
+## Today's bookings
+${bookingsText}
 
 OUTPUT FORMAT:
 Respond with a single JSON object (no markdown, no code fences) in this exact shape:
@@ -56,7 +67,9 @@ BEHAVIOURAL RULES:
 5. Round times to the nearest 5-minute boundary; if adjusted, set timeAdjusted: true.
 6. Ask clarifying questions for any missing required fields (room, start time, end time or duration).
 7. On complete parse failure (cannot understand request): set status "parse-failure".
-8. ROOM RECOMMENDATION: only suggest a room if the user has not specified one. Flag equipment mismatches. An explicit room choice by the user always wins.`;
+8. ROOM RECOMMENDATION: Only suggest a room if the user has not specified one. If the user names a room AND adds an equipment constraint that room doesn't satisfy, flag the mismatch (e.g. "California doesn't have a TV — book it anyway, or want a different room?"). An explicit room choice by the user always wins; equipment constraints are advisory after an explicit choice.
+9. CONFLICT RESPONSE: When a requested slot is already taken (check Today's bookings above), respond: "[Booker name] has the room until [HH:MM]. Available nearby: [time], [time], [time]. Pick one or suggest a different time." Never include the booking description in conflict responses. Three alternatives: next free 30-min slot in same room, then +30min, then +60min after that.
+10. BOOKER NAME VERBATIM: Always repeat the booker name exactly as provided by the user in parsedFields.booker_name. Do not correct spelling or capitalisation.`;
 }
 
 /**

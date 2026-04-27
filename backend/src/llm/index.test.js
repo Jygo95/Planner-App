@@ -126,6 +126,153 @@ describe('parseBookingRequest', () => {
 });
 
 // ---------------------------------------------------------------------------
+// parseBookingRequest — system prompt scheduling instructions (FR-LLM-1..4)
+// ---------------------------------------------------------------------------
+
+describe('parseBookingRequest — system prompt scheduling content', () => {
+  const baseContextSnapshot = {
+    nowRiga: '2026-04-26T14:00:00+03:00',
+    rooms: [
+      {
+        id: 'california',
+        name: 'California',
+        floor: 1,
+        capacity: 5,
+        equipment: ['camera', 'tv'],
+        notes: 'First room',
+      },
+      {
+        id: 'nevada',
+        name: 'Nevada',
+        floor: 2,
+        capacity: 8,
+        equipment: ['tv', 'whiteboard', 'conference-phone'],
+        notes: 'Largest room, best for client calls',
+      },
+      {
+        id: 'oregon',
+        name: 'Oregon',
+        floor: 1,
+        capacity: 3,
+        equipment: ['whiteboard'],
+        notes: 'Quiet room, no AV',
+      },
+    ],
+    bookings_for_day: [],
+  };
+
+  const conversationHistory = [{ role: 'user', content: 'Book nevada on May 10' }];
+
+  it('system prompt contains bookings_for_day section with booking data (no description)', async () => {
+    callAnthropic.mockResolvedValue(
+      JSON.stringify({
+        assistantMessage: 'Got it!',
+        parsedFields: {},
+        status: 'needs-clarification',
+      })
+    );
+
+    const contextWithBooking = {
+      ...baseContextSnapshot,
+      bookings_for_day: [
+        {
+          id: 'abc',
+          room_id: 'nevada',
+          start_utc: '2026-05-10T09:00:00Z',
+          end_utc: '2026-05-10T10:00:00Z',
+          booker_name: 'Alice',
+        },
+      ],
+    };
+
+    await parseBookingRequest({ conversationHistory, contextSnapshot: contextWithBooking });
+
+    const callArg = callAnthropic.mock.calls[0][0];
+    const systemPrompt = callArg.system;
+
+    // The booker name "Alice" must appear in the system prompt (injected from bookings_for_day).
+    // "nevada" already appears in AVAILABLE ROOMS, so "Alice" is the discriminating signal.
+    expect(systemPrompt).toContain('Alice');
+
+    // Privacy: the raw word "description" must NOT appear anywhere in the
+    // injected bookings block. We locate the section by finding "Alice" and check
+    // the surrounding 500 chars.
+    const aliceIndex = systemPrompt.indexOf('Alice');
+    const bookingsWindow = systemPrompt.slice(Math.max(0, aliceIndex - 200), aliceIndex + 300);
+    expect(bookingsWindow.toLowerCase()).not.toContain('description');
+  });
+
+  it('system prompt contains room recommendation rules with mismatch guidance', async () => {
+    callAnthropic.mockResolvedValue(
+      JSON.stringify({
+        assistantMessage: 'Got it!',
+        parsedFields: {},
+        status: 'needs-clarification',
+      })
+    );
+
+    await parseBookingRequest({ conversationHistory, contextSnapshot: baseContextSnapshot });
+
+    const callArg = callAnthropic.mock.calls[0][0];
+    const systemPrompt = callArg.system.toLowerCase();
+
+    // FR-LLM-2: must contain explicit mismatch instruction.
+    // "equipment" alone is insufficient — it already appears from the room listing.
+    // We require "mismatch" or "doesn't have" / "does not have" / "book it anyway".
+    const hasMismatchInstruction =
+      systemPrompt.includes('mismatch') ||
+      systemPrompt.includes("doesn't have") ||
+      systemPrompt.includes('book it anyway') ||
+      systemPrompt.includes('does not have');
+    expect(hasMismatchInstruction).toBe(true);
+  });
+
+  it('system prompt contains conflict response format (booker, time-until-free, alternatives)', async () => {
+    callAnthropic.mockResolvedValue(
+      JSON.stringify({
+        assistantMessage: 'Got it!',
+        parsedFields: {},
+        status: 'needs-clarification',
+      })
+    );
+
+    await parseBookingRequest({ conversationHistory, contextSnapshot: baseContextSnapshot });
+
+    const callArg = callAnthropic.mock.calls[0][0];
+    const systemPrompt = callArg.system.toLowerCase();
+
+    // FR-LLM-4: must include "until" (time-until-free) AND alternatives / pick one
+    expect(systemPrompt.includes('until')).toBe(true);
+    const hasAlternatives =
+      systemPrompt.includes('alternatives') ||
+      systemPrompt.includes('nearby') ||
+      systemPrompt.includes('pick one');
+    expect(hasAlternatives).toBe(true);
+  });
+
+  it('system prompt instructs booker name verbatim', async () => {
+    callAnthropic.mockResolvedValue(
+      JSON.stringify({
+        assistantMessage: 'Got it!',
+        parsedFields: {},
+        status: 'needs-clarification',
+      })
+    );
+
+    await parseBookingRequest({ conversationHistory, contextSnapshot: baseContextSnapshot });
+
+    const callArg = callAnthropic.mock.calls[0][0];
+    const systemPrompt = callArg.system.toLowerCase();
+
+    // FR-LLM-3: must use "verbatim" or "exactly as provided".
+    // "booker_name" alone is NOT sufficient — it already appears in the JSON shape definition.
+    const hasVerbatimInstruction =
+      systemPrompt.includes('verbatim') || systemPrompt.includes('exactly as provided');
+    expect(hasVerbatimInstruction).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // generateWittyResponse
 // ---------------------------------------------------------------------------
 

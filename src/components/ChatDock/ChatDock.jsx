@@ -11,6 +11,38 @@ import './ChatDock.css';
 const PARSE_FAILURE_MSG =
   "I couldn't find any booking details in that. Could you describe what you'd like to book? (e.g. 'Nevada room tomorrow 2–3pm for Alice')";
 
+function toRigaTimeParts(utcStr) {
+  const d = new Date(utcStr);
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Riga',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type) => parts.find((p) => p.type === type)?.value ?? '00';
+  return {
+    date: `${get('year')}-${get('month')}-${get('day')}`,
+    time: `${get('hour')}:${get('minute')}`,
+  };
+}
+
+function parsedFieldsToCardProps(pf) {
+  const start = toRigaTimeParts(pf.start_utc);
+  const end = toRigaTimeParts(pf.end_utc);
+  return {
+    room: pf.room_id ?? '',
+    date: start.date,
+    startTime: start.time,
+    endTime: end.time,
+    bookerName: pf.booker_name ?? '',
+    description: pf.description ?? '',
+    timeAdjusted: pf.timeAdjusted ?? false,
+  };
+}
+
 const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
@@ -37,27 +69,30 @@ export default function ChatDock() {
         return {
           ...msg,
           content: (
-            <ChatConfirmCard
-              {...raw.parsedFields}
-              onConfirm={async () => {
-                try {
-                  const res = await fetch('/api/bookings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(raw.parsedFields),
-                  });
-                  if (res.status === 201) {
-                    resetConversation();
-                    setInputValue('');
+            <>
+              {msg.content && <p style={{ margin: '0 0 8px' }}>{msg.content}</p>}
+              <ChatConfirmCard
+                {...parsedFieldsToCardProps(raw.parsedFields)}
+                onConfirm={async () => {
+                  try {
+                    const res = await fetch('/api/bookings', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(raw.parsedFields),
+                    });
+                    if (res.status === 201) {
+                      resetConversation();
+                      setInputValue('');
+                    }
+                  } catch {
+                    // ignore
                   }
-                } catch {
-                  // ignore
-                }
-              }}
-              onCancel={() => {
-                sendMessage(CANCEL_MSG);
-              }}
-            />
+                }}
+                onCancel={() => {
+                  sendMessage(CANCEL_MSG);
+                }}
+              />
+            </>
           ),
         };
       }
