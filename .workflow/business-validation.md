@@ -293,3 +293,32 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - 409 conflict flow in chat (LLM-shaped conflict response): task 14.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 12 — witty-responses — 2026-04-26
+
+**Branch:** feat/witty-responses
+**PRD refs covered:** FR-RULE-1 (witty), FR-RULE-5 (witty), FR-V-6
+
+### Validation
+
+- **FR-RULE-1 (too-short → witty):** `bookings.js` POST handler (now async) calls `generateWittyResponse({ scenario: 'too-short', context: { duration_minutes } })` when `validateDuration` returns `too-short`. `wittyMessage` field included in 400 response body. Unit test confirms mock witty text reaches caller. ✓
+- **FR-RULE-5 (too-far → witty):** Same pattern — `generateWittyResponse({ scenario: 'too-far', context: { days_out } })` called before returning 400. `wittyMessage` in response body. Unit test confirms. ✓
+- **Chat path:** `chat.js` calls `generateWittyResponse` when `parseBookingRequest` returns `status: 'parse-failure'` with `error: 'too-short'` or `'too-far'`; replaces `assistantMessage` in the 200 response with the witty text. Unit test asserts. ✓
+- **FR-V-6 (standard assistant bubble):** `ChatDock.jsx` parse-failure guard now includes `&& raw.error !== 'too-short' && raw.error !== 'too-far'` — witty messages bypass the static fallback and render as normal `msg.content` in `ChatHistory`. No special bubble, no emoji, no bold. ✓
+- **Token budget:** `generateWittyResponse` in `llm/index.js` calls adapter with `maxTokens: 100` (unchanged from task 09 scaffolding). ✓
+- **No profanity:** System prompt for witty calls instructs office-appropriate tone; no rough language in prompts. ✓
+- **Graceful fallback (bookings):** `wittyMessage()` helper catches all LLM errors and returns a non-empty generic string — 400 still fires correctly, never a 500. Unit test asserts `typeof body.wittyMessage === 'string' && length > 0` on rejection. ✓
+- **Graceful fallback (chat):** If `generateWittyResponse` throws, `chat.js` falls back to returning the original `parseBookingRequest` result — no 503 promoted from a witty failure. ✓
+
+### Constraints confirmed
+- C-2: `generateWittyResponse` runs server-side; witty text returned to frontend as a plain string (no keys, no internal data). ✓
+- C-3: No log endpoint touched or added. ✓
+- 226 Vitest tests pass; no tests deleted or weakened. ✓
+- No new packages introduced. ✓
+
+### Deferrals
+- Manual form: `wittyMessage` now in 400 body — frontend ManualForm display of `wittyMessage` for too-short/too-far to be wired in task 18 (polish pass) if not already handled.
+
+**Status: VALIDATED ✓**
