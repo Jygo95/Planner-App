@@ -9,13 +9,23 @@ import {
 } from '../lib/bookingRules.js';
 import { checkConflict } from '../lib/conflictCheck.js';
 import { appendLog } from '../lib/bookingLog.js';
+import { generateWittyResponse } from '../llm/index.js';
 
 const router = Router();
+
+async function wittyMessage(scenario, context, fallback) {
+  try {
+    const result = await generateWittyResponse({ scenario, context });
+    return result.text;
+  } catch {
+    return fallback;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // POST /api/bookings
 // ---------------------------------------------------------------------------
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { room_id, booker_name, description } = req.body;
   let { start_utc, end_utc } = req.body;
 
@@ -50,12 +60,31 @@ router.post('/', (req, res) => {
   // FR-RULE-5: reject if > 90 days out
   const futureError = validateFutureLimit(start_utc, nowUtc);
   if (futureError) {
-    return res.status(400).json(futureError);
+    const daysOut = Math.round(
+      (new Date(start_utc).getTime() - new Date(nowUtc).getTime()) / 86400000
+    );
+    const msg = await wittyMessage(
+      'too-far',
+      { days_out: daysOut },
+      "That's too far out — we only accept bookings up to 90 days in advance."
+    );
+    return res.status(400).json({ ...futureError, wittyMessage: msg });
   }
 
   // FR-RULE-2 / FR-RULE-1: duration checks
   const durationError = validateDuration(start_utc, end_utc);
   if (durationError) {
+    if (durationError.error === 'too-short') {
+      const durationMinutes = Math.round(
+        (new Date(end_utc).getTime() - new Date(start_utc).getTime()) / 60000
+      );
+      const msg = await wittyMessage(
+        'too-short',
+        { duration_minutes: durationMinutes },
+        'Bookings must be at least 10 minutes long.'
+      );
+      return res.status(400).json({ ...durationError, wittyMessage: msg });
+    }
     return res.status(400).json(durationError);
   }
 

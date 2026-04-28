@@ -38,3 +38,26 @@
 - Existing tests: 215 passing — no regressions
 - Vitest output: "Test Files 2 failed | 30 passed (32), Tests 5 failed | 215 passed (220)"
 - Status: red
+
+## 2026-04-26 — witty-responses — round 1
+- Tests added:
+  - backend/src/llm/index.test.js (2 new tests in "generateWittyResponse"):
+    - "generateWittyResponse for too-short calls adapter with correct prompt and maxTokens=100"
+    - "generateWittyResponse for too-far calls adapter with correct prompt and maxTokens=100"
+  - backend/src/routes/bookings.test.js (3 new describe blocks):
+    - "POST /api/bookings — too-short returns wittyMessage" — asserts `body.wittyMessage` populated from mocked `generateWittyResponse`
+    - "POST /api/bookings — too-far returns wittyMessage" — same for too-far
+    - "POST /api/bookings — wittyMessage fallback on generateWittyResponse error" — asserts fallback non-empty string on LLM throw
+  - backend/src/routes/chat.test.js (1 new describe block):
+    - "POST /api/chat — parse-failure too-short returns witty assistantMessage" — asserts `body.assistantMessage` equals witty text
+  - e2e/witty-responses.spec.js (new file, 2 Playwright tests):
+    - "too-short booking request shows witty assistant response"
+    - "too-far booking request shows witty assistant response"
+- RED confirmed:
+  - Vitest: "Test Files 2 failed | 30 passed (32), Tests 4 failed | 222 passed (226)"
+    - bookings.test.js: 3 failing — `body.wittyMessage` is undefined (route doesn't call generateWittyResponse yet)
+    - chat.test.js: 1 failing — `body.assistantMessage` is 'stub' not witty text (route doesn't intercept parse-failure)
+  - llm/index.test.js new tests: PASS — generateWittyResponse scaffold already uses maxTokens:100 and includes 'short'/'too-far' in prompt (acceptable pre-green)
+  - Playwright: 6 failed across chromium/firefox/webkit — witty text not rendered in ChatDock (frontend not wired)
+- Existing tests: 222 passing — no regressions
+- Status: red

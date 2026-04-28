@@ -3,7 +3,7 @@
  */
 
 import { Router } from 'express';
-import { parseBookingRequest } from '../../llm/index.js';
+import { parseBookingRequest, generateWittyResponse } from '../../llm/index.js';
 import { ROOMS } from '../config/rooms.js';
 import db from '../db/index.js';
 
@@ -94,6 +94,24 @@ router.post('/', async (req, res) => {
 
   try {
     const result = await parseBookingRequest({ conversationHistory: messages, contextSnapshot });
+
+    if (
+      result.status === 'parse-failure' &&
+      (result.error === 'too-short' || result.error === 'too-far')
+    ) {
+      const scenario = result.error;
+      const context =
+        scenario === 'too-short'
+          ? { duration_minutes: result.duration_minutes ?? 0 }
+          : { days_out: result.days_out ?? 0 };
+      try {
+        const witty = await generateWittyResponse({ scenario, context });
+        return res.status(200).json({ ...result, assistantMessage: witty.text });
+      } catch {
+        // fallback: return result as-is
+      }
+    }
+
     return res.status(200).json(result);
   } catch {
     return res.status(503).json({ error: 'llm_unavailable' });

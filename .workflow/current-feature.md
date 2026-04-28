@@ -1,23 +1,23 @@
 # Current Feature
 
 **Status:** main-validation
-**Branch:** feat/llm-scheduling-brain
+**Branch:** feat/witty-responses
 **Phase:** increment
 
 ## Spec
 
-### Increment 11 — LLM Scheduling Brain
+### Increment 12 — Witty Responses
 
-bookings_for_day injection, room recommendation rules, conflict response shape, booker name verbatim in system prompt.
+Replace stub too-short/too-far rejections with dynamically-generated witty LLM text via generateWittyResponse, surfaced in chat and manual form.
 
-**Full spec:** `.workflow/tasks/11-llm-scheduling-brain.md`
+**Full spec:** `.workflow/tasks/12-witty-responses.md`
 
 ## State machine
 
 - queued
 - tests-pending
-- red
+- red  ← **current**
 - green
 - review
-- main-validation  ← **current**
+- main-validation
 - merged

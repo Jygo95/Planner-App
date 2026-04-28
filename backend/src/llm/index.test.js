@@ -298,4 +298,54 @@ describe('generateWittyResponse', () => {
     expect(typeof result.text).toBe('string');
     expect(result.text.length).toBeGreaterThan(0);
   });
+
+  it('generateWittyResponse for too-short calls adapter with correct prompt and maxTokens=100', async () => {
+    callAnthropic.mockResolvedValue('Ten minutes? Barely enough time to find the room.');
+
+    const result = await generateWittyResponse({
+      scenario: 'too-short',
+      context: { duration_minutes: 5 },
+    });
+
+    expect(callAnthropic).toHaveBeenCalledOnce();
+    const callArg = callAnthropic.mock.calls[0][0];
+
+    // System prompt or messages content must reference too-short / short / 10 minute
+    const allText = JSON.stringify(callArg).toLowerCase();
+    const hasShortRef =
+      allText.includes('short') || allText.includes('10 minute') || allText.includes('too-short');
+    expect(hasShortRef).toBe(true);
+
+    // maxTokens must be 100
+    expect(callArg.maxTokens).toBe(100);
+
+    // Returns object with a text string field
+    expect(typeof result.text).toBe('string');
+    expect(result.text.length).toBeGreaterThan(0);
+  });
+
+  it('generateWittyResponse for too-far calls adapter with correct prompt and maxTokens=100', async () => {
+    callAnthropic.mockResolvedValue('Booking 94 days out? Bold move. We only look 90 days ahead.');
+
+    const result = await generateWittyResponse({
+      scenario: 'too-far',
+      context: { days_out: 94 },
+    });
+
+    expect(callAnthropic).toHaveBeenCalledOnce();
+    const callArg = callAnthropic.mock.calls[0][0];
+
+    // System prompt or messages content must reference too-far / 90 day / future
+    const allText = JSON.stringify(callArg).toLowerCase();
+    const hasFarRef =
+      allText.includes('90 day') || allText.includes('future') || allText.includes('too-far');
+    expect(hasFarRef).toBe(true);
+
+    // maxTokens must be 100
+    expect(callArg.maxTokens).toBe(100);
+
+    // Returns object with a text string field
+    expect(typeof result.text).toBe('string');
+    expect(result.text.length).toBeGreaterThan(0);
+  });
 });

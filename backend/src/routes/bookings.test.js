@@ -17,6 +17,14 @@ import { createServer } from 'http';
 import Database from 'better-sqlite3';
 import { runMigrations } from '../db/migrations.js';
 
+// Mock the LLM module so generateWittyResponse can be controlled per-test
+vi.mock('../llm/index.js', () => ({
+  parseBookingRequest: vi.fn(),
+  generateWittyResponse: vi.fn(),
+}));
+
+import { generateWittyResponse } from '../llm/index.js';
+
 // ---------------------------------------------------------------------------
 // In-memory DB shared for all tests in this file
 // ---------------------------------------------------------------------------
@@ -81,6 +89,7 @@ afterAll(() => {
 
 // Wipe bookings between tests so slots don't collide
 beforeEach(() => {
+  vi.resetAllMocks();
   testDb.prepare('DELETE FROM bookings').run();
   testDb.prepare('DELETE FROM booking_log').run();
 });
@@ -330,5 +339,85 @@ describe('DELETE → GET confirms deletion', () => {
     const list = await getRes.json();
     const found = list.find((b) => b.id === created.id);
     expect(found).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 12. POST with < 10 min duration returns 400 with wittyMessage
+// ---------------------------------------------------------------------------
+describe('POST /api/bookings — too-short returns wittyMessage', () => {
+  it('returns 400 with error=too-short and wittyMessage from generateWittyResponse', async () => {
+    generateWittyResponse.mockResolvedValue({
+      text: 'Ten minutes? Barely enough time to sign in!',
+    });
+
+    const base = new Date();
+    base.setUTCDate(base.getUTCDate() + 30);
+    base.setUTCHours(9, 0, 0, 0);
+    const end = new Date(base.getTime() + 5 * 60 * 1000); // only 5 min
+
+    const { status, body } = await postBooking({
+      room_id: 'california',
+      start_utc: base.toISOString(),
+      end_utc: end.toISOString(),
+      booker_name: 'Test User',
+    });
+
+    expect(status).toBe(400);
+    expect(body.error).toBe('too-short');
+    expect(body.wittyMessage).toBe('Ten minutes? Barely enough time to sign in!');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 13. POST with > 90 days future start returns 400 with wittyMessage
+// ---------------------------------------------------------------------------
+describe('POST /api/bookings — too-far returns wittyMessage', () => {
+  it('returns 400 with error=too-far and wittyMessage from generateWittyResponse', async () => {
+    generateWittyResponse.mockResolvedValue({
+      text: 'Bold move. We only look 90 days ahead.',
+    });
+
+    const far = new Date();
+    far.setUTCDate(far.getUTCDate() + 94);
+    far.setUTCHours(10, 0, 0, 0);
+    const farEnd = new Date(far.getTime() + 30 * 60 * 1000);
+
+    const { status, body } = await postBooking({
+      room_id: 'california',
+      start_utc: far.toISOString(),
+      end_utc: farEnd.toISOString(),
+      booker_name: 'Test User',
+    });
+
+    expect(status).toBe(400);
+    expect(body.error).toBe('too-far');
+    expect(body.wittyMessage).toBe('Bold move. We only look 90 days ahead.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 14. wittyMessage falls back to generic string when generateWittyResponse throws
+// ---------------------------------------------------------------------------
+describe('POST /api/bookings — wittyMessage fallback on generateWittyResponse error', () => {
+  it('returns 400 with non-empty wittyMessage string even if generateWittyResponse throws', async () => {
+    generateWittyResponse.mockRejectedValue(new Error('LLM unavailable'));
+
+    const base = new Date();
+    base.setUTCDate(base.getUTCDate() + 30);
+    base.setUTCHours(9, 0, 0, 0);
+    const end = new Date(base.getTime() + 5 * 60 * 1000); // only 5 min
+
+    const { status, body } = await postBooking({
+      room_id: 'california',
+      start_utc: base.toISOString(),
+      end_utc: end.toISOString(),
+      booker_name: 'Test User',
+    });
+
+    expect(status).toBe(400);
+    expect(body.error).toBe('too-short');
+    expect(typeof body.wittyMessage).toBe('string');
+    expect(body.wittyMessage.length).toBeGreaterThan(0);
   });
 });
