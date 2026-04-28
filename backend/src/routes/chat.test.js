@@ -26,7 +26,7 @@ vi.mock('../../llm/index.js', () => ({
   generateWittyResponse: vi.fn(),
 }));
 
-import { parseBookingRequest } from '../../llm/index.js';
+import { parseBookingRequest, generateWittyResponse } from '../../llm/index.js';
 
 // ---------------------------------------------------------------------------
 // Server helpers
@@ -231,5 +231,28 @@ describe('POST /api/chat — bookings_for_day injection', () => {
     for (const entry of capturedContextSnapshot.bookings_for_day) {
       expect(Object.keys(entry)).not.toContain('description');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5. parse-failure with error too-short returns witty assistantMessage
+// ---------------------------------------------------------------------------
+describe('POST /api/chat — parse-failure too-short returns witty assistantMessage', () => {
+  it('returns 200 with assistantMessage equal to witty text when parse-failure is too-short', async () => {
+    parseBookingRequest.mockResolvedValue({
+      status: 'parse-failure',
+      error: 'too-short',
+      duration_minutes: 5,
+      assistantMessage: 'stub',
+      parsedFields: {},
+    });
+    generateWittyResponse.mockResolvedValue({ text: 'A 5-minute meeting? Is that even legal?' });
+
+    const { status, body } = await postChat({
+      messages: [{ role: 'user', content: 'Book 5 min' }],
+    });
+
+    expect(status).toBe(200);
+    expect(body.assistantMessage).toBe('A 5-minute meeting? Is that even legal?');
   });
 });
