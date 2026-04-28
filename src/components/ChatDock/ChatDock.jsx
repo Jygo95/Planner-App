@@ -96,7 +96,7 @@ export default function ChatDock() {
           ),
         };
       }
-      if (raw.status === 'parse-failure') {
+      if (raw.status === 'parse-failure' && raw.error !== 'too-short' && raw.error !== 'too-far') {
         return { ...msg, content: PARSE_FAILURE_MSG };
       }
     }
