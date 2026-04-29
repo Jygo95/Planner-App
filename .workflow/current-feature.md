@@ -17,7 +17,9 @@ Session interaction cap (10 per conversation, banner at 5). Daily system-wide LL
 - queued
 - tests-pending
 - red
-- green  ← **current**
+- green
+- review
+- main-validation  ← **current**
 - green
 - review
 - main-validation
