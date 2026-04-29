@@ -1,4 +1,4 @@
-export default function ChatInput({ value, onChange, onSend, loading, onFocus }) {
+export default function ChatInput({ value, onChange, onSend, loading, onFocus, disabled }) {
   const count = value.length;
   const isWarn = count >= 270;
 
@@ -20,6 +20,7 @@ export default function ChatInput({ value, onChange, onSend, loading, onFocus })
         maxLength={300}
         placeholder="Type a message…"
         rows={3}
+        disabled={disabled}
       />
       <div className="chat-input__footer">
         <span className="chat-input__counter" style={isWarn ? { color: 'red' } : undefined}>
@@ -29,7 +30,7 @@ export default function ChatInput({ value, onChange, onSend, loading, onFocus })
           type="button"
           className="chat-input__send"
           onClick={onSend}
-          disabled={!value.trim() || loading}
+          disabled={!value.trim() || loading || disabled}
         >
           Send
         </button>

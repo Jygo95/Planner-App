@@ -112,17 +112,18 @@ export default function ChatDock() {
         <ChatHistory messages={displayMessages} />
       </div>
       <InteractionBanner interactionCount={interactionCount} />
-      {llmAvailable && !inputDisabled ? (
+      {llmAvailable ? (
         <ChatInput
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onSend={handleSend}
           loading={loading}
           onFocus={handleFocus}
+          disabled={inputDisabled}
         />
-      ) : !llmAvailable ? (
+      ) : (
         <ManualForm />
-      ) : null}
+      )}
     </div>
   );
 }
