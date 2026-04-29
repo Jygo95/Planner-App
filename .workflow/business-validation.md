@@ -322,3 +322,31 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Manual form: `wittyMessage` now in 400 body — frontend ManualForm display of `wittyMessage` for too-short/too-far to be wired in task 18 (polish pass) if not already handled.
 
 **Status: VALIDATED ✓**
+
+---
+
+## 13 — caps-and-limits — 2026-04-29
+
+**Branch:** feat/caps-and-limits
+**PRD refs covered:** FR-CHAT-4, FR-CHAT-5
+
+### Validation
+
+- **FR-CHAT-4 (session cap):** `useChat` increments `interactionCount` on each completed exchange; `inputDisabled = interactionCount >= 10`. `InteractionBanner` renders null below 5, countdown "N interactions/interaction left, wrap it up, please." at 5–9, session-limit message at 10. `ChatDock` passes `inputDisabled` to `ChatInput` (or equivalent gate). `resetConversation` zeroes `interactionCount` — banner disappears on successful booking. ✓
+- **FR-CHAT-4 (static copy):** Banner text is hardcoded JSX, not LLM-generated. ✓
+- **FR-CHAT-5 (500/UTC-day cap):** `daily_cap` table (single row `id=1`, `CHECK (id=1)`) created in `runMigrations`. `decrementCap(db)` wraps read-increment-write inside `db.transaction()` — no TOCTOU window. If `calls_made >= 500`, returns `{ capReached: true }` without incrementing. ✓
+- **FR-CHAT-5 (UTC reset):** `date_utc` comparison uses `new Date().toISOString().slice(0,10)` (pure UTC). Not Riga time. Resets on first call of a new UTC day. ✓
+- **FR-CHAT-5 (429 before LLM call):** `POST /api/chat` calls `decrementCap` first; if `capReached`, returns 429 immediately — no LLM credit wasted. ✓
+- **FR-CHAT-5 (live health):** `GET /api/health` calls `getRemainingCalls(db)` — live value from SQLite, not hardcoded 500. ✓
+- **TOCTOU fix confirmed:** Reviewer initially flagged a separate `getRemainingCalls` + discarded `decrementCap` return value. Fixed in second commit: single `const { capReached } = decrementCap(db)` call. ✓
+
+### Constraints confirmed
+- C-3: No log endpoint added or modified. ✓
+- C-6: `interactionCount` lives in React state — gone on page reload. ✓
+- 261 Vitest tests pass; no tests deleted or weakened. ✓
+- No new npm packages. ✓
+
+### Deferrals
+- Frontend response to 429 from `/api/chat` (daily cap banner already handled via health poll + `llmAvailable: false` path from task 10; explicit 429 in-chat message: task 18 polish pass if needed).
+
+**Status: VALIDATED ✓**

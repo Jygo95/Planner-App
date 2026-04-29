@@ -136,3 +136,162 @@ describe('useChat', () => {
     expect(secondCallBody.messages[2]).toMatchObject({ role: 'user', content: 'Second message' });
   });
 });
+
+// ---------------------------------------------------------------------------
+// FR-CHAT-4: interactionCount increments per exchange
+// ---------------------------------------------------------------------------
+
+describe('useChat — interactionCount (FR-CHAT-4)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('interactionCount starts at 0', () => {
+    const { result } = renderHook(() => useChat());
+    expect(result.current.interactionCount).toBe(0);
+  });
+
+  it('interactionCount increments to 1 after one sendMessage exchange', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ reply: 'Hello!' }),
+    });
+
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      await result.current.sendMessage('Hi');
+    });
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(1);
+    });
+  });
+
+  it('interactionCount increments after each successful exchange', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ reply: 'One' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ reply: 'Two' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ reply: 'Three' }) });
+
+    const { result } = renderHook(() => useChat());
+
+    for (const msg of ['First', 'Second', 'Third']) {
+      await act(async () => {
+        await result.current.sendMessage(msg);
+      });
+    }
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(3);
+    });
+  });
+
+  it('interactionCount resets to 0 when resetConversation() is called', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ reply: 'Sure!' }),
+    });
+
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      await result.current.sendMessage('Hi');
+    });
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(1);
+    });
+
+    act(() => {
+      result.current.resetConversation();
+    });
+
+    expect(result.current.interactionCount).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-CHAT-4: input disabled at 10 interactions
+// ---------------------------------------------------------------------------
+
+describe('useChat — inputDisabled at session cap', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('inputDisabled is false when interactionCount is below 10', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ reply: 'OK' }),
+    });
+
+    const { result } = renderHook(() => useChat());
+
+    // Send 9 messages
+    for (let i = 0; i < 9; i++) {
+      await act(async () => {
+        await result.current.sendMessage(`Message ${i}`);
+      });
+    }
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(9);
+    });
+
+    expect(result.current.inputDisabled).toBe(false);
+  });
+
+  it('inputDisabled is true when interactionCount reaches 10', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ reply: 'OK' }),
+    });
+
+    const { result } = renderHook(() => useChat());
+
+    for (let i = 0; i < 10; i++) {
+      await act(async () => {
+        await result.current.sendMessage(`Message ${i}`);
+      });
+    }
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(10);
+    });
+
+    expect(result.current.inputDisabled).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FR-CHAT-4: banner props (interactionCount exposed for InteractionBanner)
+// ---------------------------------------------------------------------------
+
+describe('useChat — banner props at warning threshold', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('interactionCount is 5 after 5 exchanges (banner should trigger)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ reply: 'OK' }),
+    });
+
+    const { result } = renderHook(() => useChat());
+
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await result.current.sendMessage(`Message ${i}`);
+      });
+    }
+
+    await waitFor(() => {
+      expect(result.current.interactionCount).toBe(5);
+    });
+
+    // At count 5, inputDisabled should still be false (only disabled at 10)
+    expect(result.current.inputDisabled).toBe(false);
+  });
+});

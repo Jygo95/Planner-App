@@ -256,3 +256,78 @@ describe('POST /api/chat — parse-failure too-short returns witty assistantMess
     expect(body.assistantMessage).toBe('A 5-minute meeting? Is that even legal?');
   });
 });
+
+// ---------------------------------------------------------------------------
+// 6. Daily cap — 429 when cap is exhausted (FR-CHAT-5)
+// ---------------------------------------------------------------------------
+describe('POST /api/chat — daily cap reached returns 429', () => {
+  it('returns 429 with { error: "daily_cap_reached" } when the daily cap is exhausted', async () => {
+    // Exhaust the daily_cap table by pre-filling calls_made = 500 for today
+    const today = new Date().toISOString().slice(0, 10);
+    testDb.exec(`
+      CREATE TABLE IF NOT EXISTS daily_cap (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        date_utc TEXT NOT NULL,
+        calls_made INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+    // Upsert: ensure row exists with calls_made at cap
+    testDb
+      .prepare(
+        `INSERT INTO daily_cap (id, date_utc, calls_made) VALUES (1, ?, 500)
+         ON CONFLICT(id) DO UPDATE SET date_utc = excluded.date_utc, calls_made = excluded.calls_made`
+      )
+      .run(today);
+
+    const { status, body } = await postChat({
+      messages: [{ role: 'user', content: 'Book a room please' }],
+    });
+
+    expect(status).toBe(429);
+    expect(body.error).toBe('daily_cap_reached');
+
+    // Clean up: remove the cap row so subsequent tests are unaffected
+    testDb.prepare('DELETE FROM daily_cap WHERE id = 1').run();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Daily cap — decremented on successful LLM call (FR-CHAT-5)
+// ---------------------------------------------------------------------------
+describe('POST /api/chat — daily cap is decremented on successful LLM call', () => {
+  it('calls_made increases by 1 after a successful chat request', async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    testDb.exec(`
+      CREATE TABLE IF NOT EXISTS daily_cap (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        date_utc TEXT NOT NULL,
+        calls_made INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+    // Start from a known value
+    testDb
+      .prepare(
+        `INSERT INTO daily_cap (id, date_utc, calls_made) VALUES (1, ?, 10)
+         ON CONFLICT(id) DO UPDATE SET date_utc = excluded.date_utc, calls_made = excluded.calls_made`
+      )
+      .run(today);
+
+    parseBookingRequest.mockResolvedValue({
+      assistantMessage: 'Sure!',
+      parsedFields: {},
+      status: 'needs-clarification',
+    });
+
+    const { status } = await postChat({
+      messages: [{ role: 'user', content: 'Book a room' }],
+    });
+
+    expect(status).toBe(200);
+
+    const row = testDb.prepare('SELECT calls_made FROM daily_cap WHERE id = 1').get();
+    expect(row.calls_made).toBe(11);
+
+    // Clean up
+    testDb.prepare('DELETE FROM daily_cap WHERE id = 1').run();
+  });
+});

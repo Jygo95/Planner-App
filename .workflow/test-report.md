@@ -39,6 +39,25 @@
 - Vitest output: "Test Files 2 failed | 30 passed (32), Tests 5 failed | 215 passed (220)"
 - Status: red
 
+## 2026-04-28 — caps-and-limits — round 1
+- Tests added:
+  - backend/src/lib/dailyCap.test.js (NEW — 13 unit tests for getRemainingCalls + decrementCap)
+  - src/components/ChatDock/InteractionBanner.test.jsx (NEW — 12 RTL tests for banner rendering)
+  - backend/src/routes/chat.test.js (2 new tests: 429 on cap exhausted; calls_made incremented on success)
+  - backend/src/routes/health.test.js (2 new tests: dailyCapRemaining is live not hardcoded; 500 on fresh day)
+  - src/hooks/useChat.test.js (11 new tests: interactionCount increments; inputDisabled at 10; banner props)
+  - e2e/caps.spec.js (NEW — 5 Playwright tests: banner at 5; input disabled at 10; countdown copy; daily cap banner)
+- Red confirmed: yes
+  - dailyCap.test.js: 0 tests collected (import error — dailyCap.js does not exist yet)
+  - InteractionBanner.test.jsx: 0 tests collected (import error — InteractionBanner.jsx does not exist yet)
+  - useChat.test.js: 7 new tests failing (interactionCount + inputDisabled not exposed by useChat hook yet)
+  - chat.test.js: 2 new tests failing (route doesn't implement daily cap logic; returns 503 not 429)
+  - health.test.js: 1 new test failing (dailyCapRemaining is hardcoded 500, not live from DB)
+- Total: 10 failing (new), 227 passing (existing — no regressions)
+- Vitest output: "Test Files 5 failed | 29 passed (34), Tests 10 failed | 227 passed (237)"
+- Playwright: 5 tests in e2e/caps.spec.js — syntactically valid (confirmed with --list)
+- Status: red
+
 ## 2026-04-26 — witty-responses — round 1
 - Tests added:
   - backend/src/llm/index.test.js (2 new tests in "generateWittyResponse"):
