@@ -6,7 +6,7 @@ import { Router } from 'express';
 import { parseBookingRequest, generateWittyResponse } from '../../llm/index.js';
 import { ROOMS } from '../config/rooms.js';
 import db from '../db/index.js';
-import { getRemainingCalls, decrementCap } from '../lib/dailyCap.js';
+import { decrementCap } from '../lib/dailyCap.js';
 
 const router = Router();
 
@@ -84,11 +84,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'messages array is required' });
   }
 
-  const remaining = getRemainingCalls(db);
-  if (remaining <= 0) {
+  const { capReached } = decrementCap(db);
+  if (capReached) {
     return res.status(429).json({ error: 'daily_cap_reached' });
   }
-  decrementCap(db);
 
   const startUtc = extractStartUtcFromHistory(messages);
   const bookings_for_day = startUtc ? queryBookingsForDay(startUtc) : [];
