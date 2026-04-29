@@ -1,5 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { createServer } from 'http';
+import Database from 'better-sqlite3';
+import { runMigrations } from '../db/migrations.js';
+
+// ---------------------------------------------------------------------------
+// In-memory DB shared with app for the dailyCapRemaining tests
+// ---------------------------------------------------------------------------
+const testDb = new Database(':memory:');
+runMigrations(testDb);
+
+vi.mock('../db/index.js', () => ({ default: testDb }));
 
 // This import will fail (red) until backend/src/app.js (or index.js app export) is created.
 // The app module must export the Express app without calling listen().
@@ -99,5 +109,70 @@ describe('GET /api/health — llmAvailable reflects ANTHROPIC_API_KEY', () => {
         process.env.ANTHROPIC_API_KEY = originalKey;
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// dailyCapRemaining is live (not hardcoded 500) — FR-CHAT-5
+// ---------------------------------------------------------------------------
+
+describe('GET /api/health — dailyCapRemaining is live', () => {
+  let liveServer;
+  let livePort;
+
+  beforeAll(async () => {
+    const mod = await import('../../../backend/src/app.js');
+    const liveApp = mod.app ?? mod.default;
+    ({ server: liveServer, port: livePort } = await startServer(liveApp));
+  });
+
+  afterAll(() => {
+    if (liveServer) liveServer.close();
+  });
+
+  it('dailyCapRemaining decreases after calls_made is incremented in the DB', async () => {
+    // Ensure daily_cap table exists
+    testDb.exec(`
+      CREATE TABLE IF NOT EXISTS daily_cap (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        date_utc TEXT NOT NULL,
+        calls_made INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+
+    // Set calls_made to 50 for today
+    const today = new Date().toISOString().slice(0, 10);
+    testDb
+      .prepare(
+        `INSERT INTO daily_cap (id, date_utc, calls_made) VALUES (1, ?, 50)
+         ON CONFLICT(id) DO UPDATE SET date_utc = excluded.date_utc, calls_made = excluded.calls_made`
+      )
+      .run(today);
+
+    const res = await fetch(`http://127.0.0.1:${livePort}/api/health`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+
+    // Must reflect DB state — NOT the hardcoded 500
+    expect(body.dailyCapRemaining).toBe(450);
+
+    // Clean up
+    testDb.prepare('DELETE FROM daily_cap WHERE id = 1').run();
+  });
+
+  it('dailyCapRemaining is 500 when no row exists in daily_cap (fresh day)', async () => {
+    // Ensure no row
+    testDb.exec(`
+      CREATE TABLE IF NOT EXISTS daily_cap (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        date_utc TEXT NOT NULL,
+        calls_made INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+    testDb.prepare('DELETE FROM daily_cap WHERE id = 1').run();
+
+    const res = await fetch(`http://127.0.0.1:${livePort}/api/health`);
+    const body = await res.json();
+    expect(body.dailyCapRemaining).toBe(500);
   });
 });

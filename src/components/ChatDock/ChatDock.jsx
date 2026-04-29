@@ -3,6 +3,7 @@ import ChatInput from './ChatInput.jsx';
 import ChatHistory from './ChatHistory.jsx';
 import ChatConfirmCard from './ChatConfirmCard.jsx';
 import LLMUnavailableBanner from './LLMUnavailableBanner.jsx';
+import InteractionBanner from './InteractionBanner.jsx';
 import ManualForm from '../ManualForm/ManualForm.jsx';
 import useChat from '../../hooks/useChat.js';
 import useHealthPoll from '../../hooks/useHealthPoll.js';
@@ -47,7 +48,8 @@ const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
   const { llmAvailable, triggerPoll } = useHealthPoll();
-  const { messages, loading, sendMessage, resetConversation } = useChat();
+  const { messages, loading, sendMessage, resetConversation, interactionCount, inputDisabled } =
+    useChat();
   const [inputValue, setInputValue] = useState('');
 
   async function handleSend() {
@@ -109,7 +111,8 @@ export default function ChatDock() {
       <div className="chat-dock__history-wrapper">
         <ChatHistory messages={displayMessages} />
       </div>
-      {llmAvailable ? (
+      <InteractionBanner interactionCount={interactionCount} />
+      {llmAvailable && !inputDisabled ? (
         <ChatInput
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -117,9 +120,9 @@ export default function ChatDock() {
           loading={loading}
           onFocus={handleFocus}
         />
-      ) : (
+      ) : !llmAvailable ? (
         <ManualForm />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -20,5 +20,11 @@ export function runMigrations(db) {
       booking_id TEXT NOT NULL,
       snapshot_json TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS daily_cap (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      date_utc TEXT NOT NULL,
+      calls_made INTEGER NOT NULL DEFAULT 0
+    );
   `);
 }

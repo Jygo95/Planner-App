@@ -1,8 +1,13 @@
 import { useState, useCallback } from 'react';
 
+const SESSION_CAP = 10;
+
 export default function useChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [interactionCount, setInteractionCount] = useState(0);
+
+  const inputDisabled = interactionCount >= SESSION_CAP;
 
   const sendMessage = useCallback(
     async (text) => {
@@ -33,6 +38,7 @@ export default function useChat() {
           _raw: data,
         };
         setMessages((prev) => [...prev, assistantMessage]);
+        setInteractionCount((prev) => prev + 1);
       } finally {
         setLoading(false);
       }
@@ -42,7 +48,8 @@ export default function useChat() {
 
   const resetConversation = useCallback(() => {
     setMessages([]);
+    setInteractionCount(0);
   }, []);
 
-  return { messages, loading, sendMessage, resetConversation };
+  return { messages, loading, sendMessage, resetConversation, interactionCount, inputDisabled };
 }

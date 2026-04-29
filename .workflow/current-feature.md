@@ -1,22 +1,23 @@
 # Current Feature
 
-**Status:** main-validation
-**Branch:** feat/witty-responses
+**Status:** tests-pending
+**Branch:** feat/caps-and-limits
 **Phase:** increment
 
 ## Spec
 
-### Increment 12 — Witty Responses
+### Increment 13 — Caps and Limits
 
-Replace stub too-short/too-far rejections with dynamically-generated witty LLM text via generateWittyResponse, surfaced in chat and manual form.
+Session interaction cap (10 per conversation, banner at 5). Daily system-wide LLM call cap (500 per UTC day), tracked in SQLite, reset at 00:00 UTC, live in /api/health.
 
-**Full spec:** `.workflow/tasks/12-witty-responses.md`
+**Full spec:** `.workflow/tasks/13-caps-and-limits.md`
 
 ## State machine
 
 - queued
 - tests-pending
-- red  ← **current**
+- red
+- green  ← **current**
 - green
 - review
 - main-validation
