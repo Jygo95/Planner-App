@@ -1,25 +1,23 @@
 # Current Feature
 
-**Status:** tests-pending
-**Branch:** feat/conflict-in-chat
+**Status:** green
+**Branch:** feat/cron-retention
 **Phase:** increment
 
 ## Spec
 
-### Increment 14 — Conflict In Chat
+### Increment 15 — Cron Retention
 
-When a chat-driven booking write (POST /api/bookings) returns 409, resume the conversation with an LLM-generated response suggesting alternatives. Show a toast notification with the conflicting booker's name.
+node-cron job runs daily at 03:00 Europe/Riga time. Deletes bookings older than 365 days. Writes auto_purge log entry per deleted row BEFORE deleting.
 
-**Full spec:** `.workflow/tasks/14-conflict-in-chat.md`
+**Full spec:** `.workflow/tasks/15-cron-retention.md`
 
 ## State machine
 
 - queued
 - tests-pending
 - red
-- green
-- review
-- main-validation  ← **current**
+- green  ← **current**
 - review
 - main-validation
 - merged
