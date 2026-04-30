@@ -1,26 +1,23 @@
 # Current Feature
 
 **Status:** tests-pending
-**Branch:** feat/caps-and-limits
+**Branch:** feat/conflict-in-chat
 **Phase:** increment
 
 ## Spec
 
-### Increment 13 — Caps and Limits
+### Increment 14 — Conflict In Chat
 
-Session interaction cap (10 per conversation, banner at 5). Daily system-wide LLM call cap (500 per UTC day), tracked in SQLite, reset at 00:00 UTC, live in /api/health.
+When a chat-driven booking write (POST /api/bookings) returns 409, resume the conversation with an LLM-generated response suggesting alternatives. Show a toast notification with the conflicting booker's name.
 
-**Full spec:** `.workflow/tasks/13-caps-and-limits.md`
+**Full spec:** `.workflow/tasks/14-conflict-in-chat.md`
 
 ## State machine
 
 - queued
 - tests-pending
 - red
-- green
-- review
-- main-validation  ← **current**
-- green
+- green  ← **current**
 - review
 - main-validation
 - merged

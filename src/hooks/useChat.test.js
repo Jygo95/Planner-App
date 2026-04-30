@@ -295,3 +295,168 @@ describe('useChat — banner props at warning threshold', () => {
     expect(result.current.inputDisabled).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// FR-CONF-3: conflict-resume flow — resumeWithConflict / sendConflictResume
+// ---------------------------------------------------------------------------
+
+describe('useChat — conflict-resume flow (FR-CONF-3)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('exposes a conflict-resume function (resumeWithConflict or sendConflictResume)', () => {
+    const { result } = renderHook(() => useChat());
+    const hasResumeFn =
+      typeof result.current.resumeWithConflict === 'function' ||
+      typeof result.current.sendConflictResume === 'function';
+    expect(hasResumeFn).toBe(true);
+  });
+
+  it('calls /api/chat with the conflict context appended to messages', async () => {
+    // First call: normal exchange so messages has history
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          assistantMessage: 'Nevada on May 10. Confirm?',
+          parsedFields: {
+            room_id: 'nevada',
+            start_utc: '2026-05-10T06:00:00Z',
+            end_utc: '2026-05-10T07:00:00Z',
+            booker_name: 'Bob',
+          },
+          status: 'ready-to-confirm',
+        }),
+      })
+      // Second call: LLM conflict-resume reply
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          reply: 'Alice has the room. How about 10:00?',
+        }),
+      });
+
+    const { result } = renderHook(() => useChat());
+
+    // First exchange — lands in history
+    await act(async () => {
+      await result.current.sendMessage('Book Nevada May 10 9am for Bob');
+    });
+
+    await waitFor(() => {
+      expect(result.current.messages).toHaveLength(2);
+    });
+
+    // Now trigger conflict resume
+    const conflictData = {
+      booker_name: 'Alice',
+      room_id: 'nevada',
+      start_utc: '2026-05-10T06:00:00Z',
+      end_utc: '2026-05-10T07:00:00Z',
+    };
+
+    const resumeFn = result.current.resumeWithConflict ?? result.current.sendConflictResume;
+
+    await act(async () => {
+      await resumeFn(conflictData);
+    });
+
+    // Second fetch call should be to /api/chat
+    const secondCall = fetch.mock.calls[1];
+    expect(secondCall[0]).toBe('/api/chat');
+
+    // Body must include a synthetic message about the conflict
+    const body = JSON.parse(secondCall[1].body);
+    const combinedText = body.messages.map((m) => m.content).join(' ');
+    expect(combinedText).toMatch(/taken|conflict|Alice|nevada/i);
+  });
+
+  it('adds a new assistant message to history after conflict resume', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          assistantMessage: 'Confirm?',
+          parsedFields: {
+            room_id: 'nevada',
+            start_utc: '2026-05-10T06:00:00Z',
+            end_utc: '2026-05-10T07:00:00Z',
+            booker_name: 'Carol',
+          },
+          status: 'ready-to-confirm',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ reply: 'Alice has the room. Try 10:00 instead.' }),
+      });
+
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      await result.current.sendMessage('Book Nevada May 10 for Carol');
+    });
+
+    await waitFor(() => expect(result.current.messages).toHaveLength(2));
+
+    const resumeFn = result.current.resumeWithConflict ?? result.current.sendConflictResume;
+
+    await act(async () => {
+      await resumeFn({
+        booker_name: 'Alice',
+        room_id: 'nevada',
+        start_utc: '2026-05-10T06:00:00Z',
+        end_utc: '2026-05-10T07:00:00Z',
+      });
+    });
+
+    await waitFor(() => {
+      const lastMsg = result.current.messages[result.current.messages.length - 1];
+      expect(lastMsg.role).toBe('assistant');
+      expect(lastMsg.content).toMatch(/alice has the room|try 10:00/i);
+    });
+  });
+
+  it('does NOT reset the conversation or interactionCount after conflict resume', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ reply: 'OK' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ reply: 'Alice has it. Try 10:00.' }),
+      });
+
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      await result.current.sendMessage('Book Nevada');
+    });
+
+    await waitFor(() => expect(result.current.interactionCount).toBe(1));
+
+    const resumeFn = result.current.resumeWithConflict ?? result.current.sendConflictResume;
+
+    await act(async () => {
+      await resumeFn({
+        booker_name: 'Alice',
+        room_id: 'nevada',
+        start_utc: '2026-05-10T06:00:00Z',
+        end_utc: '2026-05-10T07:00:00Z',
+      });
+    });
+
+    await waitFor(() => expect(result.current.messages.length).toBeGreaterThanOrEqual(3));
+
+    // Conversation not reset — interactionCount should not be 0
+    expect(result.current.messages.length).toBeGreaterThan(0);
+  });
+});

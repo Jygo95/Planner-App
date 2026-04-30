@@ -51,5 +51,55 @@ export default function useChat() {
     setInteractionCount(0);
   }, []);
 
-  return { messages, loading, sendMessage, resetConversation, interactionCount, inputDisabled };
+  const resumeWithConflict = useCallback(
+    async (conflictData) => {
+      const { booker_name, room_id, start_utc, end_utc } = conflictData;
+      const conflictMsg = {
+        role: 'user',
+        content: `The slot was just taken. Conflicting booking: ${booker_name} has ${room_id} from ${start_utc} to ${end_utc}. Please suggest alternatives.`,
+      };
+      // Build extended messages for the API call (includes the conflict context)
+      // but do NOT render the conflict user message in the visible chat history
+      const messagesForApi = [...messages, conflictMsg];
+      setLoading(true);
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: messagesForApi.map(({ role, content, parsedFields }) => ({
+              role,
+              content,
+              ...(parsedFields ? { parsedFields } : {}),
+            })),
+          }),
+        });
+        const data = await response.json();
+        const assistantContent = data.reply ?? data.message ?? data.assistantMessage ?? '';
+        setMessages((prev) => {
+          // Remove ready-to-confirm status from prior assistant messages so the
+          // confirm card no longer renders after a conflict
+          const cleared = prev.map((m) =>
+            m.role === 'assistant' && m._raw?.status === 'ready-to-confirm'
+              ? { ...m, _raw: { ...m._raw, status: 'conflict-dismissed' } }
+              : m
+          );
+          return [...cleared, { role: 'assistant', content: assistantContent, _raw: data }];
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [messages]
+  );
+
+  return {
+    messages,
+    loading,
+    sendMessage,
+    resetConversation,
+    interactionCount,
+    inputDisabled,
+    resumeWithConflict,
+  };
 }
