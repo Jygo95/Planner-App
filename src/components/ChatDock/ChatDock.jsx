@@ -100,7 +100,7 @@ export default function ChatDock() {
                       setToast({
                         message: `That slot was just taken by ${booker}. Please pick another time or room.`,
                       });
-                      setTimeout(() => resumeWithConflict(errData.conflicting), 0);
+                      setTimeout(() => resumeWithConflict(errData.conflicting), 100);
                     }
                   } catch {
                     // ignore
