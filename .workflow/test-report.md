@@ -58,6 +58,21 @@
 - Playwright: 5 tests in e2e/caps.spec.js — syntactically valid (confirmed with --list)
 - Status: red
 
+## 2026-04-28 — conflict-in-chat — round 1
+- Tests added:
+  - src/components/Toast/Toast.test.jsx (NEW — 7 RTL tests: renders message; non-modal; close button; onDismiss on click; auto-dismiss timing; default 5000ms duration)
+  - src/components/ChatDock/ChatDock.test.jsx (NEW — 2 RTL integration tests: toast with booker name appears after 409; new assistant alternatives message appears)
+  - src/hooks/useChat.test.js (4 new tests in "conflict-resume flow (FR-CONF-3)": exposes resumeWithConflict/sendConflictResume; calls /api/chat with conflict context; adds assistant message to history; does not reset conversation)
+  - e2e/conflict-in-chat.spec.js (NEW — 2 Playwright tests: toast with "Alice" appears + new assistant message; textarea not disabled after 409)
+- Red confirmed: yes
+  - Toast.test.jsx: all 7 tests fail — "Failed to resolve import './Toast.jsx'" (component does not exist)
+  - useChat.test.js conflict-resume suite: 4 tests fail — resumeWithConflict/sendConflictResume not exported by hook
+  - ChatDock.test.jsx: first test times out (Toast not rendered so getByText(/Alice/) never resolves); second test similarly fails
+- Total: 5 Vitest failing (new), 262 passing (existing — no regressions; prior 261 + 1 ChatDock test pre-green)
+- Vitest output: "Test Files 3 failed | 33 passed (36), Tests 5 failed | 262 passed (267)"
+- Playwright: 2 tests in e2e/conflict-in-chat.spec.js — syntactically valid (not run in Vitest)
+- Status: red
+
 ## 2026-04-26 — witty-responses — round 1
 - Tests added:
   - backend/src/llm/index.test.js (2 new tests in "generateWittyResponse"):

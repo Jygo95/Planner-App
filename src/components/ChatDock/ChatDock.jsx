@@ -5,6 +5,7 @@ import ChatConfirmCard from './ChatConfirmCard.jsx';
 import LLMUnavailableBanner from './LLMUnavailableBanner.jsx';
 import InteractionBanner from './InteractionBanner.jsx';
 import ManualForm from '../ManualForm/ManualForm.jsx';
+import Toast from '../Toast/Toast.jsx';
 import useChat from '../../hooks/useChat.js';
 import useHealthPoll from '../../hooks/useHealthPoll.js';
 import './ChatDock.css';
@@ -48,9 +49,17 @@ const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
   const { llmAvailable, triggerPoll } = useHealthPoll();
-  const { messages, loading, sendMessage, resetConversation, interactionCount, inputDisabled } =
-    useChat();
+  const {
+    messages,
+    loading,
+    sendMessage,
+    resetConversation,
+    interactionCount,
+    inputDisabled,
+    resumeWithConflict,
+  } = useChat();
   const [inputValue, setInputValue] = useState('');
+  const [toast, setToast] = useState(null);
 
   async function handleSend() {
     const text = inputValue.trim();
@@ -85,6 +94,13 @@ export default function ChatDock() {
                     if (res.status === 201) {
                       resetConversation();
                       setInputValue('');
+                    } else if (res.status === 409) {
+                      const errData = await res.json();
+                      const booker = errData.conflicting?.booker_name ?? 'Someone';
+                      setToast({
+                        message: `That slot was just taken by ${booker}. Please pick another time or room.`,
+                      });
+                      setTimeout(() => resumeWithConflict(errData.conflicting), 100);
                     }
                   } catch {
                     // ignore
@@ -124,6 +140,7 @@ export default function ChatDock() {
       ) : (
         <ManualForm />
       )}
+      {toast && <Toast message={toast.message} onDismiss={() => setToast(null)} />}
     </div>
   );
 }
