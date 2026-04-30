@@ -68,3 +68,23 @@ This fix will cause the witty `assistantMessage` (already correctly stored in `m
 ### Summary
 
 **Approved.** The one blocking issue from the first review (ChatDock.jsx overwriting witty LLM text with a static PARSE_FAILURE_MSG for too-short and too-far scenarios) is resolved by commit 6334062. The guard now correctly excludes `too-short` and `too-far` error types from the static fallback, allowing the witty assistant message to render as a normal chat bubble (FR-V-6 satisfied). All 226 Vitest unit tests pass. All checklist items are now satisfied. Ready for auto-merge.
+
+## Increment 14 — Conflict In Chat — Review APPROVED
+
+**Date:** 2026-04-28
+
+### Checklist
+
+- [x] FR-CONF-3: 409 on chat confirm → conversation resumes (LLM called again, not a dead-end error). Confirmed: `ChatDock.jsx` lines 97–103 catch the 409, show toast, and call `resumeWithConflict(errData.conflicting)` via `setTimeout(..., 0)`. `resumeWithConflict` in `useChat.js` lines 54–93 calls `/api/chat` again and appends the LLM reply as a new assistant message. No dead-end; conversation continues.
+- [x] FR-CONF-3: conflict context included in the /api/chat call (booker, room, start/end in the message history). Confirmed: `resumeWithConflict` constructs `conflictMsg.content` as `"The slot was just taken. Conflicting booking: ${booker_name} has ${room_id} from ${start_utc} to ${end_utc}. Please suggest alternatives."` and appends it to `messagesForApi` before POSTing to `/api/chat` (`useChat.js` lines 56–75). The Vitest test at `useChat.test.js` lines 316–374 asserts the body text matches `/taken|conflict|Alice|nevada/i`.
+- [x] FR-CONF-2: toast shows `booker_name` from 409 conflicting object; description NOT shown. Confirmed: `ChatDock.jsx` line 99 extracts only `errData.conflicting?.booker_name` and line 101 constructs the message as `"That slot was just taken by ${booker}. Please pick another time or room."` — `description` is never referenced in this path.
+- [x] FR-CONF-2: toast is non-modal (no role="dialog", doesn't block interaction). Confirmed: `Toast.jsx` line 11 uses `role="status"` (not `role="dialog"`). Verified by unit test `Toast.test.jsx` line 24–27.
+- [x] FR-CONF-2: toast auto-dismisses (~5s); close button present. Confirmed: `Toast.jsx` lines 5–8 set a `setTimeout(onDismiss, duration)` with `duration` defaulting to `5000`. Close button present at line 13 (`aria-label="Close"`). Both covered by unit tests in `Toast.test.jsx`.
+- [x] Manual form 409 path (task 04's inline error) is UNCHANGED — only chat confirm path uses toast. Confirmed: `ManualForm.jsx` still renders `error.type === 'conflict'` as an inline `<p className="manual-form__error">` (lines 160–163). No Toast import or usage in ManualForm. The Toast component is imported and used exclusively in `ChatDock.jsx`.
+- [x] `resumeWithConflict` does NOT reset the conversation or interactionCount. Confirmed: `useChat.js` `resumeWithConflict` (lines 54–93) never calls `setInteractionCount` or `setMessages([])`. It only appends a new assistant message via `setMessages(prev => [...cleared, ...])`. Vitest test at `useChat.test.js` lines 425–461 asserts `interactionCount` is not reset and `messages.length > 0` after the call.
+- [x] 274 Vitest tests pass; no tests deleted or weakened. Confirmed: `npx vitest run` output shows 36 test files, 274 tests, all passed.
+- [x] No new disallowed packages (no toast library — just a plain React component). Confirmed: `Toast.jsx` imports only `useEffect` from React and `./Toast.css`. No third-party toast library introduced.
+
+### Summary
+
+**Approved.** All nine checklist items pass. The 409 conflict flow is correctly implemented end-to-end: the chat confirm path catches 409, displays a non-modal Toast with the conflicting booker's name (not description), and calls `resumeWithConflict` which appends the full conflict context to the message history before making a second `/api/chat` call — resulting in a new LLM assistant message with alternatives. The conversation and `interactionCount` are preserved throughout. The manual form 409 inline error path is untouched. All 274 Vitest tests pass with no deletions or weakening. Ready for auto-merge.

@@ -17,7 +17,9 @@ When a chat-driven booking write (POST /api/bookings) returns 409, resume the co
 - queued
 - tests-pending
 - red
-- green  ← **current**
+- green
+- review
+- main-validation  ← **current**
 - review
 - main-validation
 - merged

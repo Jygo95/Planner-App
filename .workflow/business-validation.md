@@ -350,3 +350,32 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Frontend response to 429 from `/api/chat` (daily cap banner already handled via health poll + `llmAvailable: false` path from task 10; explicit 429 in-chat message: task 18 polish pass if needed).
 
 **Status: VALIDATED ✓**
+
+---
+
+## 14 — conflict-in-chat — 2026-04-30
+
+**Branch:** feat/conflict-in-chat
+**PRD refs covered:** FR-CONF-2 (toast), FR-CONF-3
+
+### Validation
+
+- **FR-CONF-3 (conversation resumes on 409):** `ChatDock.onConfirm` catches 409, extracts `conflicting` object, calls `resumeWithConflict(conflictData)` via `setTimeout(..., 0)`. `useChat.resumeWithConflict` appends a synthetic conflict message (with booker_name, room_id, start/end UTC) to history and POSTs to `/api/chat`; LLM reply arrives as a new assistant message. No dead-end. ✓
+- **FR-CONF-3 (conflict context sent to LLM):** Synthetic message text includes all conflict fields. Unit test asserts body matches `/taken|conflict|Alice|nevada/i`. ✓
+- **FR-CONF-2 (toast with booker_name):** `ChatDock` extracts only `errData.conflicting?.booker_name` — description never referenced. Toast message: "That slot was just taken by [booker]. Please pick another time or room." ✓
+- **FR-CONF-2 (non-modal):** `Toast` uses `role="status"`, not `role="dialog"`. Does not block interaction. ✓
+- **FR-CONF-2 (auto-dismiss + close):** `useEffect` timeout defaults 5000ms; `aria-label="Close"` button present. Both tested. ✓
+- **C-4 (deterministic conflict check unchanged):** Only the chat confirm path has new 409 handling. `POST /api/bookings` still runs conflict check in transaction — unmodified. ✓
+- **Manual form path unchanged:** `ManualForm.jsx` inline error for 409 not touched. ✓
+- **resumeWithConflict preserves state:** No `setInteractionCount` or `resetConversation` called inside. Tested. ✓
+
+### Constraints confirmed
+- No new npm packages — Toast is plain React + CSS. ✓
+- No disallowed tech. ✓
+- 274 Vitest tests pass; no tests deleted or weakened. ✓
+
+### Deferrals
+- Full toast system (multiple toasts, queue): task 18 (polish pass).
+- Manual form conflict copy polish: task 18.
+
+**Status: VALIDATED ✓**
