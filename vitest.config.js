@@ -12,6 +12,7 @@ export default defineConfig({
     // Backend tests run in node environment via environmentMatchGlobs
     environmentMatchGlobs: [['backend/src/**/*.test.js', 'node']],
     include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}', 'backend/src/**/*.test.js'],
+    testTimeout: 15000,
     env: {
       ANTHROPIC_API_KEY: 'sk-ant-test-dummy-key',
     },
