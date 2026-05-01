@@ -58,7 +58,7 @@ describe('ManualForm', () => {
         target: { value: 'california' },
       });
       fireEvent.change(screen.getByLabelText(/date/i), {
-        target: { value: '2026-05-01' },
+        target: { value: '2026-05-15' },
       });
       fireEvent.change(screen.getByLabelText(/start time/i), {
         target: { value: '09:00' },
