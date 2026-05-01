@@ -6,8 +6,10 @@ import LLMUnavailableBanner from './LLMUnavailableBanner.jsx';
 import InteractionBanner from './InteractionBanner.jsx';
 import ManualForm from '../ManualForm/ManualForm.jsx';
 import Toast from '../Toast/Toast.jsx';
+import WebGLRefraction from './WebGLRefraction.jsx';
 import useChat from '../../hooks/useChat.js';
 import useHealthPoll from '../../hooks/useHealthPoll.js';
+import useWebGLSetting from '../../hooks/useWebGLSetting.js';
 import './ChatDock.css';
 
 const PARSE_FAILURE_MSG =
@@ -49,6 +51,7 @@ const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
   const { llmAvailable, triggerPoll } = useHealthPoll();
+  const { webglEnabled } = useWebGLSetting();
   const {
     messages,
     loading,
@@ -123,6 +126,7 @@ export default function ChatDock() {
 
   return (
     <div className="chat-dock">
+      <WebGLRefraction enabled={webglEnabled} />
       <LLMUnavailableBanner llmAvailable={llmAvailable} />
       <div className="chat-dock__history-wrapper">
         <ChatHistory messages={displayMessages} />

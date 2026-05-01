@@ -17,8 +17,8 @@ Each row is one feature branch. Status: `queued` unless noted otherwise.
 | 11 | `feat/llm-scheduling-brain` | `bookings_for_day` into context, room recommendation, conflict response shape, booker verbatim | FR-LLM-1–4 | queued |
 | 12 | `feat/witty-responses` | Wire `generateWittyResponse` for too-short + too-far, replace stub rejections | FR-RULE-1(witty),FR-RULE-5(witty),FR-V-6 | queued |
 | 13 | `feat/caps-and-limits` | Session cap (counter, banner@5, disable@10), daily cap (SQLite counter, reset midnight UTC, health live) | FR-CHAT-4,FR-CHAT-5 | queued |
-| 14 | `feat/conflict-in-chat` | 409 in chat flow → LLM FR-LLM-4 shape response, slot-taken toast | FR-CONF-2(toast),FR-CONF-3 | queued |
-| 15 | `feat/cron-retention` | node-cron daily at 03:00 Riga, delete bookings >365d, auto_purge log entry per row | FR-CRON-1–3 | queued |
-| 16 | `feat/webgl-refraction` | WebGL2 shader refraction on chat panel, capability detection, CSS fallback, toggle wired | FR-V-3,FR-V-4 | queued |
+| 14 | `feat/conflict-in-chat` | 409 in chat flow → LLM FR-LLM-4 shape response, slot-taken toast | FR-CONF-2(toast),FR-CONF-3 | merged ✓ |
+| 15 | `feat/cron-retention` | node-cron daily at 03:00 Riga, delete bookings >365d, auto_purge log entry per row | FR-CRON-1–3 | merged ✓ |
+| 16 | `feat/webgl-refraction` | WebGL2 shader refraction on chat panel, capability detection, CSS fallback, toggle wired | FR-V-3,FR-V-4 | **active** |
 | 17 | `feat/visual-regression` | Playwright visual regression, reference screenshots per viewport, CI diff step | NFR-2,NFR-3 | queued |
 | 18 | `feat/polish-pass` | Perf audit, reliability completion, full toast system, final a11y pass | NFR-4–6,FR-V-7 | queued |

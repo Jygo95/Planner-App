@@ -1,23 +1,23 @@
 # Current Feature
 
-**Status:** green
-**Branch:** feat/cron-retention
+**Status:** tests-pending
+**Branch:** feat/webgl-refraction
 **Phase:** increment
 
 ## Spec
 
-### Increment 15 — Cron Retention
+### Increment 16 — WebGL Refraction
 
-node-cron job runs daily at 03:00 Europe/Riga time. Deletes bookings older than 365 days. Writes auto_purge log entry per deleted row BEFORE deleting.
+WebGL2 shader-based refraction effect on the chat input panel only. Capability detection. CSS fallback on failure. Settings sheet toggle fully wired.
 
-**Full spec:** `.workflow/tasks/15-cron-retention.md`
+**Full spec:** `.workflow/tasks/16-webgl-refraction.md`
 
 ## State machine
 
 - queued
-- tests-pending
+- tests-pending  ← **current**
 - red
-- green  ← **current**
+- green
 - review
 - main-validation
 - merged
