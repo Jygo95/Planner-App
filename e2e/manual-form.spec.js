@@ -14,7 +14,7 @@ test.describe('Manual Form', () => {
     await page.getByText(/switch to manual/i).click();
 
     await page.getByLabel(/room/i).selectOption('california');
-    await page.getByLabel(/date/i).fill('2026-05-01');
+    await page.getByLabel(/date/i).fill('2026-05-15');
     await page.getByLabel(/start time/i).fill('09:00');
     await page.getByLabel(/end time/i).fill('10:00');
     await page.getByLabel(/booker name/i).fill('Alice');
