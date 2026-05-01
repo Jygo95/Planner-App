@@ -14,6 +14,10 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  snapshotDir: 'e2e/__snapshots__',
+  expect: {
+    toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2, animations: 'disabled' },
+  },
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
