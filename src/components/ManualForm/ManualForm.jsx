@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ConfirmationCard from './ConfirmationCard.jsx';
 import useBookingSubmit from '../../hooks/useBookingSubmit.js';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -81,15 +81,39 @@ export default function ManualForm() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [pendingBooking, setPendingBooking] = useState(null);
   const [validationError, setValidationError] = useState('');
+  const [serverReachable, setServerReachable] = useState(true);
 
   const { submit, error, loading } = useBookingSubmit({
     onSuccess: () => {
+      setServerReachable(true);
       setForm(EMPTY_FORM);
       setPendingBooking(null);
       setShowForm(false);
       showToast('Booking confirmed.');
     },
   });
+
+  // Derive server-unreachable flag from network_error response
+  const serverUnreachable = !serverReachable || error?.type === 'network_error';
+
+  // Show toast when a network error occurs (only call external showToast in effect)
+  useEffect(() => {
+    if (error?.type === 'network_error') {
+      showToast('Server unreachable. Please try again.');
+    }
+  }, [error, showToast]);
+
+  // Health poll every 30 s to clear serverUnreachable
+  useEffect(() => {
+    if (!serverUnreachable) return;
+    const id = setInterval(() => {
+      fetch('/api/health')
+        .then((res) => res.json())
+        .then(() => setServerReachable(true))
+        .catch(() => {});
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [serverUnreachable]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -257,7 +281,7 @@ export default function ManualForm() {
           {validationError && <p className="manual-form__error">{validationError}</p>}
 
           <div className="manual-form__actions">
-            <button type="submit" disabled={loading}>
+            <button type="submit" disabled={loading || serverUnreachable}>
               Preview booking
             </button>
             <button type="button" onClick={() => setShowForm(false)}>
@@ -278,6 +302,7 @@ export default function ManualForm() {
           timeAdjusted={pendingBooking.timeAdjusted}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
+          confirmDisabled={loading || serverUnreachable}
         />
       )}
     </div>
