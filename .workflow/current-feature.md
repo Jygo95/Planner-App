@@ -16,8 +16,8 @@ Performance audit, reliability completion, full toast system, and final a11y pas
 
 - queued  ✓
 - tests-pending  ✓
-- red  ← **current**
-- green
+- red  ✓
+- green  ← **current**
 - review
 - main-validation
 - merged

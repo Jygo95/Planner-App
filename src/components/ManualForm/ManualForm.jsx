@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ConfirmationCard from './ConfirmationCard.jsx';
 import useBookingSubmit from '../../hooks/useBookingSubmit.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import './ManualForm.css';
 
 const EMPTY_FORM = {
@@ -75,10 +76,10 @@ function getNowInRiga() {
 }
 
 export default function ManualForm() {
+  const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [pendingBooking, setPendingBooking] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
   const [validationError, setValidationError] = useState('');
 
   const { submit, error, loading } = useBookingSubmit({
@@ -86,7 +87,7 @@ export default function ManualForm() {
       setForm(EMPTY_FORM);
       setPendingBooking(null);
       setShowForm(false);
-      setSuccessMessage('Booking confirmed');
+      showToast('Booking confirmed.');
     },
   });
 
@@ -171,9 +172,7 @@ export default function ManualForm() {
 
   return (
     <div className="manual-form-wrapper">
-      {successMessage && <p className="manual-form__success">{successMessage}</p>}
-
-      {!showForm && !successMessage && (
+      {!showForm && (
         <button type="button" className="manual-form__affordance" onClick={() => setShowForm(true)}>
           Switch to manual
         </button>

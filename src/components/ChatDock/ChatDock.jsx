@@ -5,11 +5,11 @@ import ChatConfirmCard from './ChatConfirmCard.jsx';
 import LLMUnavailableBanner from './LLMUnavailableBanner.jsx';
 import InteractionBanner from './InteractionBanner.jsx';
 import ManualForm from '../ManualForm/ManualForm.jsx';
-import Toast from '../Toast/Toast.jsx';
 import WebGLRefraction from './WebGLRefraction.jsx';
 import useChat from '../../hooks/useChat.js';
 import useHealthPoll from '../../hooks/useHealthPoll.js';
 import useWebGLSetting from '../../hooks/useWebGLSetting.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import './ChatDock.css';
 
 const PARSE_FAILURE_MSG =
@@ -50,6 +50,7 @@ function parsedFieldsToCardProps(pf) {
 const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
+  const { showToast } = useToast();
   const { llmAvailable, triggerPoll } = useHealthPoll();
   const { webglEnabled } = useWebGLSetting();
   const {
@@ -62,7 +63,6 @@ export default function ChatDock() {
     resumeWithConflict,
   } = useChat();
   const [inputValue, setInputValue] = useState('');
-  const [toast, setToast] = useState(null);
 
   async function handleSend() {
     const text = inputValue.trim();
@@ -95,14 +95,15 @@ export default function ChatDock() {
                       body: JSON.stringify(raw.parsedFields),
                     });
                     if (res.status === 201) {
+                      showToast('Booking confirmed.');
                       resetConversation();
                       setInputValue('');
                     } else if (res.status === 409) {
                       const errData = await res.json();
-                      const booker = errData.conflicting?.booker_name ?? 'Someone';
-                      setToast({
-                        message: `That slot was just taken by ${booker}. Please pick another time or room.`,
-                      });
+                      showToast(
+                        'That slot was just taken. Please pick another time or room.',
+                        'error'
+                      );
                       setTimeout(() => resumeWithConflict(errData.conflicting), 100);
                     }
                   } catch {
@@ -144,7 +145,6 @@ export default function ChatDock() {
       ) : (
         <ManualForm />
       )}
-      {toast && <Toast message={toast.message} onDismiss={() => setToast(null)} />}
     </div>
   );
 }
