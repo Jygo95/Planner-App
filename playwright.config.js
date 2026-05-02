@@ -14,6 +14,13 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  snapshotDir: 'e2e/__snapshots__',
+  // Remove {platform} so snapshot filenames are consistent across macOS and Linux
+  snapshotPathTemplate:
+    '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}',
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.05, threshold: 0.2, animations: 'disabled' },
+  },
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

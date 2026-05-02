@@ -95,3 +95,8 @@
   - Playwright: 6 failed across chromium/firefox/webkit — witty text not rendered in ChatDock (frontend not wired)
 - Existing tests: 222 passing — no regressions
 - Status: red
+
+## 17 — visual-regression — tests-pending → red
+- File: e2e/visual-regression.spec.js
+- Tests written: 30 screenshot tests (6 viewports × 5 views)
+- Status: red (no baseline snapshots committed yet)
