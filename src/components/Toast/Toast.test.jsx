@@ -1,15 +1,16 @@
 /**
  * Unit tests for src/components/Toast/Toast.jsx
  *
- * The component does not exist yet — these tests are intentionally RED.
- *
- * Spec (FR-CONF-2):
+ * Spec (FR-CONF-2 / FR-V-7):
  *   Props: message, onDismiss, duration=5000
  *   - renders the message text
  *   - close button calls onDismiss
  *   - auto-dismisses after `duration` ms
  *   - does NOT auto-dismiss before duration elapses
  *   - is non-modal (no role="dialog")
+ *   - has role="status"
+ *   - has aria-live="polite"
+ *   - close button is present
  */
 
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -29,6 +30,26 @@ describe('Toast — rendering', () => {
   it('renders a close button', () => {
     render(<Toast message="Some conflict." onDismiss={() => {}} />);
     // accept a button with accessible name like "Close", "×", "Dismiss", etc.
+    const closeBtn =
+      screen.queryByRole('button', { name: /close/i }) ||
+      screen.queryByRole('button', { name: /dismiss/i }) ||
+      screen.queryByRole('button');
+    expect(closeBtn).not.toBeNull();
+  });
+
+  it('has role="status" for screen-reader announcements', () => {
+    render(<Toast message="Booking confirmed." onDismiss={() => {}} />);
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('has aria-live="polite"', () => {
+    render(<Toast message="Booking confirmed." onDismiss={() => {}} />);
+    const statusEl = screen.getByRole('status');
+    expect(statusEl).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('close button is present', () => {
+    render(<Toast message="Booking confirmed." onDismiss={() => {}} />);
     const closeBtn =
       screen.queryByRole('button', { name: /close/i }) ||
       screen.queryByRole('button', { name: /dismiss/i }) ||

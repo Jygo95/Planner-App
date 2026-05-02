@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import axe from 'axe-core';
 import GearIcon from './components/GearIcon.jsx';
 import ManualForm from './components/ManualForm/ManualForm.jsx';
 import ConfirmationCard from './components/ManualForm/ConfirmationCard.jsx';
 import BookingDetailPanel from './components/BookingDetail/BookingDetailPanel.jsx';
 import BookingBlock from './components/Calendar/BookingBlock.jsx';
+import ChatDock from './components/ChatDock/ChatDock.jsx';
 
 // ---------------------------------------------------------------------------
 // GearIcon
@@ -156,5 +158,42 @@ describe('BookingDetailPanel accessibility', () => {
       cancelBtn.getAttribute('aria-labelledby') ||
       cancelBtn.textContent.trim();
     expect(accessibleName).not.toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// axe-core — automated a11y audit (NFR-5)
+// These tests require the production components to pass the axe audit.
+// They are RED until all critical/serious violations are resolved.
+// ---------------------------------------------------------------------------
+
+/**
+ * Helper: run axe on the rendered container and assert no critical/serious violations.
+ * Filters to 'critical' and 'serious' impact levels so minor/moderate issues are
+ * allowed to be addressed iteratively.
+ */
+async function expectNoAxeViolations(container) {
+  const results = await axe.run(container);
+  const significant = results.violations.filter(
+    (v) => v.impact === 'critical' || v.impact === 'serious'
+  );
+  if (significant.length > 0) {
+    const msgs = significant.map((v) => `${v.id} (${v.impact}): ${v.description}`).join('\n');
+    throw new Error(`axe-core found ${significant.length} critical/serious violation(s):\n${msgs}`);
+  }
+  expect(significant.length).toBe(0);
+}
+
+describe('axe-core a11y audit — ManualForm', () => {
+  it('has no critical or serious axe violations', async () => {
+    const { container } = render(<ManualForm />);
+    await expectNoAxeViolations(container);
+  });
+});
+
+describe('axe-core a11y audit — ChatDock', () => {
+  it('has no critical or serious axe violations', async () => {
+    const { container } = render(<ChatDock />);
+    await expectNoAxeViolations(container);
   });
 });
