@@ -19,7 +19,7 @@ export default defineConfig({
   snapshotPathTemplate:
     '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}',
   expect: {
-    toHaveScreenshot: { maxDiffPixels: 100, threshold: 0.2, animations: 'disabled' },
+    toHaveScreenshot: { maxDiffPixelRatio: 0.05, threshold: 0.2, animations: 'disabled' },
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
