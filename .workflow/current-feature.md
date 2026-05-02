@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** queued
+**Status:** main-validation
 **Branch:** feat/polish-pass
 **Phase:** increment
 
@@ -17,7 +17,7 @@ Performance audit, reliability completion, full toast system, and final a11y pas
 - queued  ✓
 - tests-pending  ✓
 - red  ✓
-- green  ← **current**
-- review
-- main-validation
+- green  ✓
+- review  ✓
+- main-validation  ← **current**
 - merged
