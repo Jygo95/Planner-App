@@ -1,21 +1,21 @@
 # Current Feature
 
-**Status:** red
-**Branch:** feat/visual-regression
+**Status:** queued
+**Branch:** feat/polish-pass
 **Phase:** increment
 
 ## Spec
 
-### Increment 17 — Visual Regression
+### Increment 18 — Polish Pass
 
-Playwright visual regression: reference screenshots per viewport on first run; subsequent PRs diff against baseline and flag pixel diffs above threshold. 6 viewports × 5 views = 30 reference images.
+Performance audit, reliability completion, full toast system, and final a11y pass. This is the last increment before iteration phase.
 
-**Full spec:** `.workflow/tasks/17-visual-regression.md`
+**Full spec:** `.workflow/tasks/18-polish-pass.md`
 
 ## State machine
 
-- queued
-- tests-pending
+- queued  ✓
+- tests-pending  ✓
 - red  ← **current**
 - green
 - review
