@@ -14,7 +14,7 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { useContext } from 'react';
 import ToastContainer from './ToastContainer.jsx';
-import { ToastContext } from '../../context/ToastContext.jsx';
+import { ToastContext, ToastProvider } from '../../context/ToastContext.jsx';
 
 // ---------------------------------------------------------------------------
 // Helper: a consumer component that calls showToast via context
@@ -30,10 +30,10 @@ function ToastTrigger({ message, type }) {
 
 function renderWithContainer(ui) {
   return render(
-    <>
+    <ToastProvider>
       <ToastContainer />
       {ui}
-    </>
+    </ToastProvider>
   );
 }
 
@@ -146,10 +146,10 @@ describe('ToastContainer — multiple toasts stack', () => {
     }
 
     render(
-      <>
+      <ToastProvider>
         <ToastContainer />
         <DoubleToastTrigger />
-      </>
+      </ToastProvider>
     );
 
     fireEvent.click(screen.getByRole('button', { name: /trigger two/i }));

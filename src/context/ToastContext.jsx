@@ -1,24 +1,30 @@
-/**
- * ToastContext — provides showToast() to any component in the tree.
- *
- * Architecture note:
- *   ToastContainer is both the state owner and the context provider.
- *   ToastContext is created with a module-level default so that siblings
- *   of <ToastContainer /> (not children) can still access showToast().
- *   ToastContainer registers its showToast into the module-level ref on
- *   mount, and the default context value delegates to that ref.
- */
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 
-// Module-level holder — ToastContainer writes here when it mounts.
-export const _toastRegistry = { showToast: () => {} };
+// eslint-disable-next-line react-refresh/only-export-components
+export const ToastContext = createContext(null);
 
-const defaultValue = {
-  showToast: (message, type) => _toastRegistry.showToast(message, type),
-};
+let nextId = 0;
 
-export const ToastContext = createContext(defaultValue);
+export function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
 
+  const showToast = useCallback((message, type = 'info') => {
+    const id = ++nextId;
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+
+  const dismiss = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{ showToast, toasts, dismiss }}>{children}</ToastContext.Provider>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast() {
-  return useContext(ToastContext);
+  const ctx = useContext(ToastContext);
+  if (!ctx) return { showToast: () => {} };
+  return ctx;
 }
