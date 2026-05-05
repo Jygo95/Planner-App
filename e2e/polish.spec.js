@@ -14,18 +14,24 @@
 
 import { test, expect } from '@playwright/test';
 
+// Module-level counter — workers: 1 means single Node process, so this
+// increments monotonically across all browser projects (chromium, firefox, webkit).
+// Each submitManualForm call gets a unique date, preventing SQLite booking conflicts.
+let slotCounter = 0;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Fill and submit the manual booking form with valid future data */
+/** Fill and submit the manual booking form with a unique future date */
 async function submitManualForm(page) {
   // Click "Switch to manual" to reveal the form
   await page.getByRole('button', { name: /switch to manual/i }).click();
 
-  // Future date — 30 days from test run
+  // Each call uses a unique date offset to avoid SQLite booking conflicts
+  const slot = slotCounter++;
   const future = new Date();
-  future.setDate(future.getDate() + 30);
+  future.setDate(future.getDate() + 30 + slot);
   const dateStr = future.toISOString().slice(0, 10); // YYYY-MM-DD
 
   await page.getByLabel(/room/i).selectOption({ index: 1 });
@@ -34,8 +40,8 @@ async function submitManualForm(page) {
   await page.getByLabel(/end time/i).fill('11:00');
   await page.getByLabel(/booker name/i).fill('Playwright Test User');
 
-  // Submit
-  await page.getByRole('button', { name: /book/i }).click();
+  // Submit — button text is "Preview booking"
+  await page.getByRole('button', { name: /preview booking/i }).click();
 
   // The confirmation card may appear — confirm it
   const confirmBtn = page.getByRole('button', { name: /confirm/i });
@@ -132,13 +138,21 @@ test('keyboard nav: Tab through form fields in logical order', async ({ page }) 
   // Open the manual form
   await page.getByRole('button', { name: /switch to manual/i }).click();
 
-  // The expected Tab order of field labels (case-insensitive substrings)
-  const expectedFieldLabels = ['room', 'date', 'start time', 'end time', 'booker'];
+  // Focus the Room select to establish a known starting point inside the form.
+  // This is cross-browser reliable — clicking a vanished button can leave focus
+  // on body in Firefox/webkit, making Tab start from the top of the page.
+  const roomSelect = page.getByLabel(/room/i);
+  await roomSelect.waitFor({ state: 'visible' });
+  await roomSelect.focus();
+
+  // The expected Tab order of field labels (case-insensitive substrings).
+  // Room is already focused, so we check the fields that follow it via Tab.
+  const expectedFieldLabels = ['date', 'start time', 'end time', 'booker'];
 
   const focusedLabels = [];
 
-  // Tab through enough times to capture all form fields
-  for (let i = 0; i < 20; i++) {
+  // Tab through enough times to capture all form fields after Room
+  for (let i = 0; i < 15; i++) {
     await page.keyboard.press('Tab');
 
     // Get label text for the currently focused element
@@ -169,19 +183,19 @@ test('keyboard nav: Tab through form fields in logical order', async ({ page }) 
     );
   }
 
-  // Verify logical order: room before date, date before start, start before end
-  const roomIdx = focusedLabels.findIndex((l) => l.includes('room'));
+  // Verify logical order: date before start, start before end, end before booker
   const dateIdx = focusedLabels.findIndex((l) => l.includes('date'));
   const startIdx = focusedLabels.findIndex((l) => l.includes('start'));
   const endIdx = focusedLabels.findIndex((l) => l.includes('end'));
+  const bookerIdx = focusedLabels.findIndex((l) => l.includes('booker'));
 
-  if (roomIdx !== -1 && dateIdx !== -1) {
-    expect(roomIdx).toBeLessThan(dateIdx);
-  }
   if (dateIdx !== -1 && startIdx !== -1) {
     expect(dateIdx).toBeLessThan(startIdx);
   }
   if (startIdx !== -1 && endIdx !== -1) {
     expect(startIdx).toBeLessThan(endIdx);
+  }
+  if (endIdx !== -1 && bookerIdx !== -1) {
+    expect(endIdx).toBeLessThan(bookerIdx);
   }
 });
