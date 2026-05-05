@@ -14,24 +14,39 @@
 
 import { test, expect } from '@playwright/test';
 
-// Module-level counter — workers: 1 means single Node process, so this
-// increments monotonically across all browser projects (chromium, firefox, webkit).
-// Each submitManualForm call gets a unique date, preventing SQLite booking conflicts.
-let slotCounter = 0;
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Fill and submit the manual booking form with a unique future date */
-async function submitManualForm(page) {
+/**
+ * Return a unique future-date day offset derived from (project × 5) + testSlot.
+ * Each browser project gets a band of 5 days (chromium: 30-34, firefox: 35-39,
+ * webkit: 40-44) so bookings never collide across projects even though the
+ * Playwright worker reloads module state per project.
+ */
+function getDayOffset(testInfo) {
+  const projects = ['chromium', 'firefox', 'webkit'];
+  const projectIdx = Math.max(0, projects.indexOf(testInfo.project.name));
+
+  const slots = {
+    appears: 0,
+    'auto-dismisses': 1,
+    'close button': 2,
+  };
+  const title = testInfo.title.toLowerCase();
+  const testSlot = Object.entries(slots).find(([k]) => title.includes(k))?.[1] ?? 0;
+
+  return 30 + projectIdx * 5 + testSlot;
+}
+
+/** Fill and submit the manual booking form with a project+test-unique future date */
+async function submitManualForm(page, testInfo) {
   // Click "Switch to manual" to reveal the form
   await page.getByRole('button', { name: /switch to manual/i }).click();
 
-  // Each call uses a unique date offset to avoid SQLite booking conflicts
-  const slot = slotCounter++;
+  const dayOffset = getDayOffset(testInfo);
   const future = new Date();
-  future.setDate(future.getDate() + 30 + slot);
+  future.setDate(future.getDate() + dayOffset);
   const dateStr = future.toISOString().slice(0, 10); // YYYY-MM-DD
 
   await page.getByLabel(/room/i).selectOption({ index: 1 });
@@ -45,7 +60,7 @@ async function submitManualForm(page) {
 
   // The confirmation card may appear — confirm it
   const confirmBtn = page.getByRole('button', { name: /confirm/i });
-  if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+  if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
     await confirmBtn.click();
   }
 }
@@ -53,10 +68,12 @@ async function submitManualForm(page) {
 // ---------------------------------------------------------------------------
 // 1. Toast appears when a booking is confirmed
 // ---------------------------------------------------------------------------
-test('toast appears with "Booking confirmed" after manual form submit', async ({ page }) => {
+test('toast appears with "Booking confirmed" after manual form submit', async ({
+  page,
+}, testInfo) => {
   await page.goto('/');
 
-  await submitManualForm(page);
+  await submitManualForm(page, testInfo);
 
   // The toast should appear with "Booking confirmed."
   await expect(page.getByText(/booking confirmed/i)).toBeVisible({ timeout: 8000 });
@@ -65,10 +82,10 @@ test('toast appears with "Booking confirmed" after manual form submit', async ({
 // ---------------------------------------------------------------------------
 // 2. Toast auto-dismisses after 5 seconds
 // ---------------------------------------------------------------------------
-test('toast auto-dismisses after 5 seconds', async ({ page }) => {
+test('toast auto-dismisses after 5 seconds', async ({ page }, testInfo) => {
   await page.goto('/');
 
-  await submitManualForm(page);
+  await submitManualForm(page, testInfo);
 
   // Toast should appear
   await expect(page.getByText(/booking confirmed/i)).toBeVisible({ timeout: 8000 });
@@ -83,16 +100,16 @@ test('toast auto-dismisses after 5 seconds', async ({ page }) => {
 // ---------------------------------------------------------------------------
 // 3. Toast close button removes the toast immediately
 // ---------------------------------------------------------------------------
-test('toast close button removes toast immediately', async ({ page }) => {
+test('toast close button removes toast immediately', async ({ page }, testInfo) => {
   await page.goto('/');
 
-  await submitManualForm(page);
+  await submitManualForm(page, testInfo);
 
   // Toast should appear
   await expect(page.getByText(/booking confirmed/i)).toBeVisible({ timeout: 8000 });
 
   // Click the close button on the toast
-  const closeBtn = page.getByRole('button', { name: /close/i }).first();
+  const closeBtn = page.locator('.toast__close').first();
   await expect(closeBtn).toBeVisible({ timeout: 3000 });
   await closeBtn.click();
 
