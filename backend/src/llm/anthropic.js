@@ -12,11 +12,17 @@ import Anthropic from '@anthropic-ai/sdk';
 export async function callAnthropic({ messages, system, maxTokens }) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+  // Strip any custom fields (parsedFields, _raw, etc.) — Anthropic only accepts role + content.
+  const cleanMessages = messages.map(({ role, content }) => ({
+    role,
+    content: typeof content === 'string' ? content : String(content),
+  }));
+
   const response = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: maxTokens,
     system,
-    messages,
+    messages: cleanMessages,
   });
 
   return response.content[0].text;
