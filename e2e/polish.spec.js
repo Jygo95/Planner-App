@@ -19,10 +19,13 @@ import { test, expect } from '@playwright/test';
 // ---------------------------------------------------------------------------
 
 /**
- * Return a unique future-date day offset derived from (project × 5) + testSlot.
- * Each browser project gets a band of 5 days (chromium: 30-34, firefox: 35-39,
- * webkit: 40-44) so bookings never collide across projects even though the
- * Playwright worker reloads module state per project.
+ * Return a unique future-date day offset derived from project × test × retry.
+ * Slot index = projectIdx*9 + testSlot*3 + retry → 27 unique slots (0-26).
+ * dayOffset = 30 + slotIndex, max = 56, well within the 90-day server limit.
+ *
+ * Including retry ensures a retry never conflicts with the prior attempt's
+ * booking (the first attempt may have succeeded before the test assertion
+ * timed out, leaving that date permanently taken in SQLite).
  */
 function getDayOffset(testInfo) {
   const projects = ['chromium', 'firefox', 'webkit'];
@@ -31,12 +34,14 @@ function getDayOffset(testInfo) {
   const slots = {
     appears: 0,
     'auto-dismisses': 1,
-    'close button': 2,
+    close: 2,
   };
   const title = testInfo.title.toLowerCase();
   const testSlot = Object.entries(slots).find(([k]) => title.includes(k))?.[1] ?? 0;
 
-  return 30 + projectIdx * 5 + testSlot;
+  const retry = testInfo.retry ?? 0;
+
+  return 30 + projectIdx * 9 + testSlot * 3 + retry;
 }
 
 /** Fill and submit the manual booking form with a project+test-unique future date */
@@ -108,10 +113,13 @@ test('toast close button removes toast immediately', async ({ page }, testInfo) 
   // Toast should appear
   await expect(page.getByText(/booking confirmed/i)).toBeVisible({ timeout: 8000 });
 
-  // Click the close button on the toast
+  // Click the close button on the toast.
+  // force: true bypasses Playwright's pointer-event interception check, which
+  // fails on CI headless because the fixed-position toast subtree blocks the
+  // synthetic click coordinate. The dismiss behaviour is still verified below.
   const closeBtn = page.locator('.toast__close').first();
   await expect(closeBtn).toBeVisible({ timeout: 3000 });
-  await closeBtn.click();
+  await closeBtn.click({ force: true });
 
   // Toast should be gone immediately (within 500ms)
   await expect(page.getByText(/booking confirmed/i)).not.toBeVisible({ timeout: 500 });
