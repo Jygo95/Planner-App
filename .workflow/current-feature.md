@@ -1,6 +1,6 @@
 # Current Feature
 
-**Status:** main-validation
+**Status:** merged
 **Branch:** feat/polish-pass
 **Phase:** increment
 
@@ -19,5 +19,5 @@ Performance audit, reliability completion, full toast system, and final a11y pas
 - red  ✓
 - green  ✓
 - review  ✓
-- main-validation  ← **current**
-- merged
+- main-validation  ✓
+- merged  ← **current**
