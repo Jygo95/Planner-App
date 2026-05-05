@@ -165,10 +165,9 @@ export default function ManualForm() {
   function handleConfirm() {
     const { room, date, startTime, endTime, bookerName, description } = pendingBooking;
     const payload = {
-      room,
-      date,
-      start_time: rigaToUtcIso(date, startTime),
-      end_time: rigaToUtcIso(date, endTime),
+      room_id: room,
+      start_utc: rigaToUtcIso(date, startTime),
+      end_utc: rigaToUtcIso(date, endTime),
       booker_name: bookerName.trim(),
       description,
     };
