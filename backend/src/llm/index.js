@@ -94,7 +94,12 @@ export async function parseBookingRequest({ conversationHistory, contextSnapshot
   const system = buildSystemPrompt(contextSnapshot);
   const messages = truncateHistory(conversationHistory);
 
-  const responseText = await callAnthropic({ messages, system, maxTokens: 200 });
+  const rawText = await callAnthropic({ messages, system, maxTokens: 200 });
+  // Strip markdown code fences the model sometimes adds despite the prompt
+  const responseText = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
 
   try {
     const parsed = JSON.parse(responseText);

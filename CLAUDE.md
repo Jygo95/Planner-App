@@ -57,6 +57,27 @@ You read and write these. Sub-agents read most, write only what's specified.
 - When a sub-agent returns, summarise its output in chat for the user, then decide next routing.
 - Status updates to user after every merge and at the start of every iteration cycle.
 
+## Local setup
+
+To run the app locally:
+
+```bash
+# Backend (terminal 1)
+cd backend
+cp .env.example .env          # then add ANTHROPIC_API_KEY=sk-ant-... to .env
+node src/index.js              # runs on http://localhost:3001
+
+# Frontend (terminal 2)
+npm install
+npm run dev                    # runs on http://localhost:5173
+```
+
+**API key rules (hard):**
+
+- `backend/.env` is gitignored — never commit it, never stage it, never reference its contents in code or commits.
+- If you see `ANTHROPIC_API_KEY` in any staged file, refuse and warn the user immediately.
+- The key lives only in `backend/.env` on each developer's machine.
+
 ## Refusal triggers
 
 - A sub-agent attempts to use disallowed tech → block, ask user.
