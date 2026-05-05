@@ -100,3 +100,60 @@
 - File: e2e/visual-regression.spec.js
 - Tests written: 30 screenshot tests (6 viewports × 5 views)
 - Status: red (no baseline snapshots committed yet)
+
+## 18 — polish-pass — tests-pending → red (2026-05-02)
+
+### Files created / modified
+
+| File | Type | Status |
+|------|------|--------|
+| `src/components/Toast/ToastContainer.test.jsx` | NEW — Vitest/RTL | RED |
+| `src/components/Toast/Toast.test.jsx` | MODIFIED — added 3 new tests | GREEN (Toast.jsx already exists) |
+| `backend/src/middleware/reliability.test.js` | NEW — Vitest (node env) | RED |
+| `src/accessibility.test.jsx` | MODIFIED — added axe-core audit tests | GREEN (existing components pass axe) |
+| `e2e/polish.spec.js` | NEW — Playwright E2E | RED (run at E2E time) |
+
+### Tests written
+
+**ToastContainer.test.jsx** (4 describe blocks, 5 tests — all RED):
+- `showToast` adds a toast to the DOM
+- auto-dismiss removes toast after 5000 ms
+- toast NOT removed before 5000 ms
+- close button removes toast immediately
+- multiple toasts stack (two visible simultaneously)
+
+**Toast.test.jsx** (3 new tests added — GREEN because Toast.jsx already implemented):
+- has `role="status"`
+- has `aria-live="polite"`
+- close button is present
+
+**backend/src/middleware/reliability.test.js** (4 describe blocks, 5 tests — all RED):
+- `withDbRetry` succeeds on 3rd attempt after 2 SQLITE_BUSY errors
+- `withDbRetry` resolves immediately when fn doesn't throw
+- `withDbRetry` rejects with `{ status: 503, error: 'db_unavailable' }` after 3 SQLITE_BUSY errors
+- `withDbRetry` re-throws non-SQLITE_BUSY errors immediately
+- `dbBusyHandler` Express middleware sends 503 on db_unavailable; delegates to next() for other errors
+
+**src/accessibility.test.jsx** (2 new describe blocks — GREEN, existing components pass axe):
+- `axe-core a11y audit — ManualForm`: no critical/serious violations
+- `axe-core a11y audit — ChatDock`: no critical/serious violations
+
+**e2e/polish.spec.js** (5 Playwright tests — RED, run at E2E time):
+- Toast appears with "Booking confirmed" after manual form submit
+- Toast auto-dismisses after 5 seconds
+- Toast close button removes toast immediately
+- Keyboard nav: Tab reaches "Switch to manual" without mouse
+- Keyboard nav: Tab through form fields in logical order
+
+### Vitest output (2 failing suites, 295 passing tests)
+
+```
+Test Files  2 failed | 39 passed (41)
+      Tests  295 passed (295)
+```
+
+Failing suites:
+1. `src/components/Toast/ToastContainer.test.jsx` — "Failed to resolve import './ToastContainer.jsx'" (production file does not exist)
+2. `backend/src/middleware/reliability.test.js` — "Failed to resolve import './reliability.js'" (production file does not exist)
+
+### Commit SHA: dbeb175

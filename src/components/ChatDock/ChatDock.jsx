@@ -1,15 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ChatInput from './ChatInput.jsx';
 import ChatHistory from './ChatHistory.jsx';
 import ChatConfirmCard from './ChatConfirmCard.jsx';
 import LLMUnavailableBanner from './LLMUnavailableBanner.jsx';
 import InteractionBanner from './InteractionBanner.jsx';
 import ManualForm from '../ManualForm/ManualForm.jsx';
-import Toast from '../Toast/Toast.jsx';
 import WebGLRefraction from './WebGLRefraction.jsx';
 import useChat from '../../hooks/useChat.js';
 import useHealthPoll from '../../hooks/useHealthPoll.js';
 import useWebGLSetting from '../../hooks/useWebGLSetting.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import './ChatDock.css';
 
 const PARSE_FAILURE_MSG =
@@ -50,6 +50,7 @@ function parsedFieldsToCardProps(pf) {
 const CANCEL_MSG = 'Booking cancelled. What would you like to change?';
 
 export default function ChatDock() {
+  const { showToast } = useToast();
   const { llmAvailable, triggerPoll } = useHealthPoll();
   const { webglEnabled } = useWebGLSetting();
   const {
@@ -62,7 +63,28 @@ export default function ChatDock() {
     resumeWithConflict,
   } = useChat();
   const [inputValue, setInputValue] = useState('');
-  const [toast, setToast] = useState(null);
+  const [serverUnreachable, setServerUnreachable] = useState(false);
+  const prevLlmAvailable = useRef(true);
+
+  // Show toast when LLM becomes unreachable
+  useEffect(() => {
+    if (prevLlmAvailable.current && !llmAvailable) {
+      showToast('AI assistant is unreachable. Please use the manual form.');
+    }
+    prevLlmAvailable.current = llmAvailable;
+  }, [llmAvailable, showToast]);
+
+  // Health poll every 30 s to clear serverUnreachable
+  useEffect(() => {
+    if (!serverUnreachable) return;
+    const id = setInterval(() => {
+      fetch('/api/health')
+        .then((res) => res.json())
+        .then(() => setServerUnreachable(false))
+        .catch(() => {});
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [serverUnreachable]);
 
   async function handleSend() {
     const text = inputValue.trim();
@@ -73,6 +95,13 @@ export default function ChatDock() {
 
   function handleFocus() {
     triggerPoll();
+    // Clear server-unreachable on next user interaction by re-checking health
+    if (serverUnreachable) {
+      fetch('/api/health')
+        .then((res) => res.json())
+        .then(() => setServerUnreachable(false))
+        .catch(() => {});
+    }
   }
 
   // Build display messages — inject confirm cards for ready-to-confirm
@@ -95,18 +124,25 @@ export default function ChatDock() {
                       body: JSON.stringify(raw.parsedFields),
                     });
                     if (res.status === 201) {
+                      setServerUnreachable(false);
+                      showToast('Booking confirmed.');
                       resetConversation();
                       setInputValue('');
                     } else if (res.status === 409) {
                       const errData = await res.json();
-                      const booker = errData.conflicting?.booker_name ?? 'Someone';
-                      setToast({
-                        message: `That slot was just taken by ${booker}. Please pick another time or room.`,
-                      });
+                      showToast(
+                        `That slot was just taken by ${errData.conflicting?.booker_name ?? 'someone'}. Please pick another time or room.`,
+                        'error'
+                      );
                       setTimeout(() => resumeWithConflict(errData.conflicting), 100);
+                    } else if (res.status === 429) {
+                      showToast('AI assistant unavailable today. Please use the manual form.');
                     }
-                  } catch {
-                    // ignore
+                  } catch (err) {
+                    if (err instanceof TypeError) {
+                      showToast('Server unreachable. Please try again.');
+                      setServerUnreachable(true);
+                    }
                   }
                 }}
                 onCancel={() => {
@@ -139,12 +175,11 @@ export default function ChatDock() {
           onSend={handleSend}
           loading={loading}
           onFocus={handleFocus}
-          disabled={inputDisabled}
+          disabled={inputDisabled || serverUnreachable}
         />
       ) : (
         <ManualForm />
       )}
-      {toast && <Toast message={toast.message} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

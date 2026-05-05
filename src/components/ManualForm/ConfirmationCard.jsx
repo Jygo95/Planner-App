@@ -25,6 +25,7 @@ export default function ConfirmationCard({
   timeAdjusted,
   onConfirm,
   onCancel,
+  confirmDisabled,
 }) {
   const duration = computeDuration(startTime, endTime);
 
@@ -65,7 +66,7 @@ export default function ConfirmationCard({
       )}
 
       <div className="confirmation-card__actions">
-        <button type="button" onClick={onConfirm}>
+        <button type="button" onClick={onConfirm} disabled={confirmDisabled}>
           Confirm booking
         </button>
         <button type="button" onClick={onCancel}>

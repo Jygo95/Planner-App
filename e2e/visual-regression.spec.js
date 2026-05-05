@@ -16,12 +16,14 @@ for (const vp of VIEWPORTS) {
     });
 
     test(`landing page — day view + chat dock [${vp.name}]`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date('2026-01-15T09:00:00.000Z'));
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       await expect(page).toHaveScreenshot(`landing-${vp.name}.png`, { animations: 'disabled' });
     });
 
     test(`manual form open [${vp.name}]`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date('2026-01-15T09:00:00.000Z'));
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       await page.getByRole('button', { name: 'Switch to manual' }).click();
@@ -29,6 +31,7 @@ for (const vp of VIEWPORTS) {
     });
 
     test(`settings sheet open [${vp.name}]`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date('2026-01-15T09:00:00.000Z'));
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       await page.getByRole('button', { name: 'Settings' }).click();
@@ -36,6 +39,7 @@ for (const vp of VIEWPORTS) {
     });
 
     test(`week view [${vp.name}]`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date('2026-01-15T09:00:00.000Z'));
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       await page.getByRole('button', { name: 'Week' }).click();
@@ -43,6 +47,7 @@ for (const vp of VIEWPORTS) {
     });
 
     test(`month view [${vp.name}]`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date('2026-01-15T09:00:00.000Z'));
       await page.goto('/');
       await page.waitForLoadState('networkidle');
       await page.getByRole('button', { name: 'Month' }).click();

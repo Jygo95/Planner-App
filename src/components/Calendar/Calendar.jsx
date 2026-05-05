@@ -6,6 +6,7 @@ import RoomFilter from './RoomFilter.jsx';
 import BookingDetailPanel from '../BookingDetail/BookingDetailPanel.jsx';
 import useBookings from '../../hooks/useBookings.js';
 import useBookingActions from '../../hooks/useBookingActions.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import './Calendar.css';
 
 const ALL_ROOMS = ['california', 'nevada', 'oregon'];
@@ -85,6 +86,7 @@ function getInitialDate(today) {
 export default function Calendar() {
   const today = getTodayRiga();
   const { year: todayYear, month: todayMonth } = parseYearMonth(today);
+  const { showToast } = useToast();
 
   const [view, setView] = useState('day');
   const [currentDate, setCurrentDate] = useState(() => getInitialDate(today));
@@ -111,8 +113,17 @@ export default function Calendar() {
 
   const { bookings, refetch } = useBookings({ from: fetchBounds.from, to: fetchBounds.to });
 
-  const { delete: deleteBooking, patch } = useBookingActions({
+  const { delete: deleteBooking } = useBookingActions({
     onSuccess: () => {
+      showToast('Booking cancelled.');
+      setSelectedBooking(null);
+      if (refetch) refetch();
+    },
+  });
+
+  const { patch } = useBookingActions({
+    onSuccess: () => {
+      showToast('Booking updated.');
       setSelectedBooking(null);
       if (refetch) refetch();
     },

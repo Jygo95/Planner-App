@@ -20,5 +20,5 @@ Each row is one feature branch. Status: `queued` unless noted otherwise.
 | 14 | `feat/conflict-in-chat` | 409 in chat flow → LLM FR-LLM-4 shape response, slot-taken toast | FR-CONF-2(toast),FR-CONF-3 | merged ✓ |
 | 15 | `feat/cron-retention` | node-cron daily at 03:00 Riga, delete bookings >365d, auto_purge log entry per row | FR-CRON-1–3 | merged ✓ |
 | 16 | `feat/webgl-refraction` | WebGL2 shader refraction on chat panel, capability detection, CSS fallback, toggle wired | FR-V-3,FR-V-4 | merged ✓ |
-| 17 | `feat/visual-regression` | Playwright visual regression, reference screenshots per viewport, CI diff step | NFR-2,NFR-3 | **active** |
-| 18 | `feat/polish-pass` | Perf audit, reliability completion, full toast system, final a11y pass | NFR-4–6,FR-V-7 | queued |
+| 17 | `feat/visual-regression` | Playwright visual regression, reference screenshots per viewport, CI diff step | NFR-2,NFR-3 | merged ✓ |
+| 18 | `feat/polish-pass` | Perf audit, reliability completion, full toast system, final a11y pass | NFR-4–6,FR-V-7 | **active** |

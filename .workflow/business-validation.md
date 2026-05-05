@@ -379,3 +379,27 @@ Reviewer requested uppercase error codes (CONFLICT, TOO_SHORT, etc.) and 422 sta
 - Manual form conflict copy polish: task 18.
 
 **Status: VALIDATED ✓**
+
+---
+
+## Increment 18 — feat/polish-pass — 2026-05-02
+
+### PRD requirements validated
+
+- **FR-V-7 (full toast system):** ToastContainer + Toast components with stacking queue. Five triggers all wired: booking confirmed ("Booking confirmed."), 409 conflict ("That slot was just taken by [booker]. Please pick another time or room."), 429 daily cap ("AI assistant unavailable today. Please use the manual form."), LLM unreachable ("AI assistant is unreachable. Please use the manual form."), edit/cancel save ("Booking updated." / "Booking cancelled."). Non-modal; `role="status"`; auto-dismiss 5s; close button. ✓
+- **FR-CONF-2 (toast includes booker name):** Conflict toast interpolates `errData.conflicting?.booker_name ?? 'someone'`. ✓
+- **NFR-4 (performance):** No new synchronous heavy work added. Vite production build unchanged. Calendar view switching remains React state-only (no re-mount). WebGL confirmed in task 16. Lighthouse audit not run in CI — deferred to iteration phase. ✓ (partial)
+- **NFR-5 (accessibility):** axe-core audits pass on ManualForm and ChatDock. All form inputs labelled. Playwright keyboard nav test passes. ✓
+- **NFR-6 (reliability — frontend):** Network TypeError in ChatDock and ManualForm → toast "Server unreachable. Please try again." + `serverUnreachable` state disables write buttons; 30s health poll re-enables. ✓
+- **NFR-6 (reliability — backend SQLite):** `withDbRetry` retries 3× on SQLITE_BUSY with 100ms delay; `dbBusyHandler` returns 503 on exhaustion. ✓
+- **NFR-6 (reliability — LLM unreachable):** Health returns `llmAvailable: false`; ChatDock useEffect fires toast on first transition. ✓
+
+### Constraints confirmed
+- axe-core and @axe-core/react approved by user for accessibility testing. No other unlisted packages.
+- 306 Vitest tests pass; no tests deleted or weakened.
+
+### Deferrals
+- Full Lighthouse performance audit (NFR-4): recommend running manually in iteration phase.
+- Nested aria-live on Toast.jsx preserved (test assertion; advisory only).
+
+**Status: VALIDATED ✓**
