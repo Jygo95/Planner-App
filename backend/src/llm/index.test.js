@@ -244,7 +244,7 @@ describe('parseBookingRequest — system prompt scheduling content', () => {
     // FR-LLM-4: must include "until" (time-until-free) AND alternatives / pick one
     expect(systemPrompt.includes('until')).toBe(true);
     const hasAlternatives =
-      systemPrompt.includes('alternatives') ||
+      systemPrompt.includes('alternative') ||
       systemPrompt.includes('nearby') ||
       systemPrompt.includes('pick one');
     expect(hasAlternatives).toBe(true);

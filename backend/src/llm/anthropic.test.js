@@ -17,11 +17,12 @@ let callAnthropic;
 beforeEach(async () => {
   vi.resetAllMocks();
 
-  // Set up the mock: Anthropic is a constructor whose instances have messages.create
+  // Set up the mock: Anthropic is a constructor whose instances have messages.create.
+  // Must use a regular function (not arrow) so `new Anthropic()` works correctly.
   const mockCreate = vi.fn();
-  Anthropic.mockImplementation(() => ({
-    messages: { create: mockCreate },
-  }));
+  Anthropic.mockImplementation(function () {
+    return { messages: { create: mockCreate } };
+  });
 
   const mod = await import('../llm/anthropic.js');
   callAnthropic = mod.callAnthropic;
@@ -32,9 +33,9 @@ describe('callAnthropic', () => {
     const mockCreate = vi.fn().mockResolvedValue({
       content: [{ type: 'text', text: 'Hello!' }],
     });
-    Anthropic.mockImplementation(() => ({
-      messages: { create: mockCreate },
-    }));
+    Anthropic.mockImplementation(function () {
+      return { messages: { create: mockCreate } };
+    });
 
     await callAnthropic({
       messages: [{ role: 'user', content: 'Hello' }],
@@ -45,13 +46,13 @@ describe('callAnthropic', () => {
     expect(Anthropic).toHaveBeenCalledOnce();
   });
 
-  it('calls messages.create with model: "claude-haiku-4-5"', async () => {
+  it('calls messages.create with model: "claude-haiku-4-5-20251001"', async () => {
     const mockCreate = vi.fn().mockResolvedValue({
       content: [{ type: 'text', text: 'Response text' }],
     });
-    Anthropic.mockImplementation(() => ({
-      messages: { create: mockCreate },
-    }));
+    Anthropic.mockImplementation(function () {
+      return { messages: { create: mockCreate } };
+    });
 
     await callAnthropic({
       messages: [{ role: 'user', content: 'Book a room' }],
@@ -61,16 +62,16 @@ describe('callAnthropic', () => {
 
     expect(mockCreate).toHaveBeenCalledOnce();
     const createArg = mockCreate.mock.calls[0][0];
-    expect(createArg.model).toBe('claude-haiku-4-5');
+    expect(createArg.model).toBe('claude-haiku-4-5-20251001');
   });
 
   it('passes max_tokens equal to the maxTokens argument', async () => {
     const mockCreate = vi.fn().mockResolvedValue({
       content: [{ type: 'text', text: 'Response text' }],
     });
-    Anthropic.mockImplementation(() => ({
-      messages: { create: mockCreate },
-    }));
+    Anthropic.mockImplementation(function () {
+      return { messages: { create: mockCreate } };
+    });
 
     await callAnthropic({
       messages: [{ role: 'user', content: 'Book a room' }],
@@ -87,9 +88,9 @@ describe('callAnthropic', () => {
     const mockCreate = vi.fn().mockResolvedValue({
       content: [{ type: 'text', text: expectedText }],
     });
-    Anthropic.mockImplementation(() => ({
-      messages: { create: mockCreate },
-    }));
+    Anthropic.mockImplementation(function () {
+      return { messages: { create: mockCreate } };
+    });
 
     const result = await callAnthropic({
       messages: [{ role: 'user', content: 'Book california tomorrow' }],
