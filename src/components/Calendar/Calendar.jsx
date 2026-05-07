@@ -1,12 +1,11 @@
-import { useState } from 'react';
 import DayView from './DayView.jsx';
 import WeekView from './WeekView.jsx';
 import MonthView from './MonthView.jsx';
 import RoomFilter from './RoomFilter.jsx';
-import BookingDetailPanel from '../BookingDetail/BookingDetailPanel.jsx';
 import useBookings from '../../hooks/useBookings.js';
 import useBookingActions from '../../hooks/useBookingActions.js';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useState, useEffect } from 'react';
 import './Calendar.css';
 
 const ALL_ROOMS = ['california', 'nevada', 'oregon'];
@@ -26,6 +25,30 @@ const MONTH_NAMES = [
   'December',
 ];
 
+const DAY_NAMES_LONG = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+const MONTH_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
 function getTodayRiga() {
   return new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
@@ -43,37 +66,32 @@ function addDays(dateStr, n) {
 
 function getWeekStart(dateStr) {
   const d = new Date(dateStr + 'T00:00:00Z');
-  const dow = d.getUTCDay(); // 0=Sun, 1=Mon...
+  const dow = d.getUTCDay();
   const diff = dow === 0 ? -6 : 1 - dow;
   d.setUTCDate(d.getUTCDate() + diff);
   return d.toISOString().slice(0, 10);
 }
 
 function dayBounds(dateStr) {
-  const from = `${dateStr}T00:00:00Z`;
-  const to = `${dateStr}T23:59:59Z`;
-  return { from, to };
+  return { from: `${dateStr}T00:00:00Z`, to: `${dateStr}T23:59:59Z` };
 }
 
 function weekBounds(weekStart) {
-  const from = `${weekStart}T00:00:00Z`;
-  const end = addDays(weekStart, 6);
-  const to = `${end}T23:59:59Z`;
-  return { from, to };
+  return { from: `${weekStart}T00:00:00Z`, to: `${addDays(weekStart, 6)}T23:59:59Z` };
 }
 
 function monthBounds(year, month) {
   const mm = String(month + 1).padStart(2, '0');
-  const from = `${year}-${mm}-01T00:00:00Z`;
   const lastDay = new Date(year, month + 1, 0).getDate();
-  const dd = String(lastDay).padStart(2, '0');
-  const to = `${year}-${mm}-${dd}T23:59:59Z`;
-  return { from, to };
+  return {
+    from: `${year}-${mm}-01T00:00:00Z`,
+    to: `${year}-${mm}-${String(lastDay).padStart(2, '0')}T23:59:59Z`,
+  };
 }
 
 function parseYearMonth(dateStr) {
   const [y, m] = dateStr.split('-').map(Number);
-  return { year: y, month: m - 1 }; // month is 0-indexed
+  return { year: y, month: m - 1 };
 }
 
 function getInitialDate(today) {
@@ -83,7 +101,28 @@ function getInitialDate(today) {
   return today;
 }
 
-export default function Calendar() {
+function formatDayLabel(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  const dow = DAY_NAMES_LONG[d.getUTCDay()];
+  const day = d.getUTCDate();
+  const mon = MONTH_NAMES[d.getUTCMonth()];
+  const yr = d.getUTCFullYear();
+  return `${dow}, ${day} ${mon} ${yr}`;
+}
+
+function formatWeekLabel(weekStart) {
+  const start = new Date(weekStart + 'T12:00:00Z');
+  const end = new Date(addDays(weekStart, 6) + 'T12:00:00Z');
+  const sDay = start.getUTCDate();
+  const sMon = MONTH_SHORT[start.getUTCMonth()];
+  const eDay = end.getUTCDate();
+  const eMon = MONTH_SHORT[end.getUTCMonth()];
+  const yr = end.getUTCFullYear();
+  if (sMon === eMon) return `${sDay}–${eDay} ${eMon} ${yr}`;
+  return `${sDay} ${sMon} – ${eDay} ${eMon} ${yr}`;
+}
+
+export default function Calendar({ onBookingSelect, actionsRef }) {
   const today = getTodayRiga();
   const { year: todayYear, month: todayMonth } = parseYearMonth(today);
   const { showToast } = useToast();
@@ -91,9 +130,7 @@ export default function Calendar() {
   const [view, setView] = useState('day');
   const [currentDate, setCurrentDate] = useState(() => getInitialDate(today));
   const [activeRooms, setActiveRooms] = useState([...ALL_ROOMS]);
-  const [selectedBooking, setSelectedBooking] = useState(null);
 
-  // Month-view specific state
   const [viewYear, setViewYear] = useState(todayYear);
   const [viewMonth, setViewMonth] = useState(todayMonth);
 
@@ -103,20 +140,16 @@ export default function Calendar() {
   const weekStart = getWeekStart(currentDate);
 
   let fetchBounds;
-  if (view === 'day') {
-    fetchBounds = dayBounds(currentDate);
-  } else if (view === 'week') {
-    fetchBounds = weekBounds(weekStart);
-  } else {
-    fetchBounds = monthBounds(viewYear, viewMonth);
-  }
+  if (view === 'day') fetchBounds = dayBounds(currentDate);
+  else if (view === 'week') fetchBounds = weekBounds(weekStart);
+  else fetchBounds = monthBounds(viewYear, viewMonth);
 
   const { bookings, refetch } = useBookings({ from: fetchBounds.from, to: fetchBounds.to });
 
   const { delete: deleteBooking } = useBookingActions({
     onSuccess: () => {
       showToast('Booking cancelled.');
-      setSelectedBooking(null);
+      onBookingSelect && onBookingSelect(null);
       if (refetch) refetch();
     },
   });
@@ -124,18 +157,20 @@ export default function Calendar() {
   const { patch } = useBookingActions({
     onSuccess: () => {
       showToast('Booking updated.');
-      setSelectedBooking(null);
+      onBookingSelect && onBookingSelect(null);
       if (refetch) refetch();
     },
   });
 
-  const handleCancelBooking = (id) => {
-    deleteBooking(id);
-  };
-
-  const handleEditSave = (id, body) => {
-    patch(id, body);
-  };
+  // Expose action handlers to parent (App) via ref
+  useEffect(() => {
+    if (actionsRef) {
+      actionsRef.current = {
+        cancelBooking: (id) => deleteBooking(id),
+        editBooking: (id, body) => patch(id, body),
+      };
+    }
+  }, [actionsRef, deleteBooking, patch]);
 
   const navigateDay = (delta) => {
     const next = addDays(currentDate, delta);
@@ -160,11 +195,9 @@ export default function Calendar() {
       newMonth += 12;
       newYear -= 1;
     }
-    // Bounds check: don't go before minDate month or after maxDate month
     const newMonthStr = `${newYear}-${String(newMonth + 1).padStart(2, '0')}-01`;
-    const maxMonthStr = maxDate.slice(0, 7) + '-01';
-    const minMonthStr = minDate.slice(0, 7) + '-01';
-    if (newMonthStr > maxMonthStr || newMonthStr < minMonthStr) return;
+    if (newMonthStr > maxDate.slice(0, 7) + '-01' || newMonthStr < minDate.slice(0, 7) + '-01')
+      return;
     setViewYear(newYear);
     setViewMonth(newMonth);
   };
@@ -203,7 +236,7 @@ export default function Calendar() {
               <button data-testid="nav-prev-day" onClick={() => navigateDay(-1)}>
                 ‹
               </button>
-              <span className="current-date-label">{currentDate}</span>
+              <span className="current-date-label">{formatDayLabel(currentDate)}</span>
               <button data-testid="nav-next-day" onClick={() => navigateDay(1)}>
                 ›
               </button>
@@ -215,13 +248,11 @@ export default function Calendar() {
               <button data-testid="nav-prev-week" onClick={() => navigateWeek(-1)}>
                 ‹
               </button>
-              <span className="current-date-label">
-                {weekStart} – {addDays(weekStart, 6)}
-              </span>
+              <span className="current-date-label">{formatWeekLabel(weekStart)}</span>
               <button data-testid="nav-next-week" onClick={() => navigateWeek(1)}>
                 ›
               </button>
-              <button onClick={goToday}>This week</button>
+              <button onClick={goToday}>Today</button>
             </>
           )}
           {view === 'month' && (
@@ -235,9 +266,10 @@ export default function Calendar() {
               <button data-testid="nav-next-month" onClick={() => navigateMonth(1)}>
                 ›
               </button>
-              <button onClick={goThisMonth}>This month</button>
+              <button onClick={goThisMonth}>Today</button>
             </>
           )}
+          <span className="riga-tz-label">(Riga)</span>
         </div>
 
         <RoomFilter activeRooms={activeRooms} onFilterChange={setActiveRooms} />
@@ -247,23 +279,26 @@ export default function Calendar() {
         {view === 'day' && (
           <DayView
             date={currentDate}
+            today={today}
             bookings={bookings}
             filteredRooms={activeRooms}
-            onBookingClick={setSelectedBooking}
+            onBookingClick={onBookingSelect}
           />
         )}
         {view === 'week' && (
           <WeekView
             weekStart={weekStart}
+            today={today}
             bookings={bookings}
             filteredRooms={activeRooms}
-            onBookingClick={setSelectedBooking}
+            onBookingClick={onBookingSelect}
           />
         )}
         {view === 'month' && (
           <MonthView
             year={viewYear}
             month={viewMonth}
+            today={today}
             bookings={bookings}
             filteredRooms={activeRooms}
             onDayClick={handleMonthDayClick}
@@ -272,15 +307,6 @@ export default function Calendar() {
           />
         )}
       </div>
-
-      {selectedBooking && (
-        <BookingDetailPanel
-          booking={selectedBooking}
-          onClose={() => setSelectedBooking(null)}
-          onCancelConfirm={handleCancelBooking}
-          onEditSave={(body) => handleEditSave(selectedBooking.id, body)}
-        />
-      )}
     </div>
   );
 }

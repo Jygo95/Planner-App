@@ -1,3 +1,44 @@
+## Increment 18 review pass 2 — 2026-05-02
+
+**Verdict:** APPROVED
+
+### Checklist results
+
+- [x] **All 5 toast triggers wired with correct messages**
+  - Booking success (chat confirm path): `showToast('Booking confirmed.')` — ChatDock.jsx line 128
+  - 409 conflict (with booker name): `showToast(\`That slot was just taken by ${errData.conflicting?.booker_name ?? 'someone'}. Please pick another time or room.\`, 'error')` — ChatDock.jsx lines 133–136
+  - 429 daily cap: `showToast('AI assistant unavailable today. Please use the manual form.')` — ChatDock.jsx line 139
+  - LLM unreachable (llmAvailable flips false): `showToast('AI assistant is unreachable. Please use the manual form.')` via useEffect watching `llmAvailable` — ChatDock.jsx lines 70–75
+  - Calendar edit save: `showToast('Booking updated.')` and cancel: `showToast('Booking cancelled.')` — Calendar.jsx lines 118/126; two separate `useBookingActions` instances with distinct `onSuccess` callbacks
+
+- [x] **409 toast includes booker name** — template literal with `errData.conflicting?.booker_name ?? 'someone'` exactly as specified. Regression from pass 1 is fixed.
+
+- [x] **`serverUnreachable` disables send button in ChatDock** — `ChatInput` receives `disabled={inputDisabled || serverUnreachable}` (ChatDock.jsx line 178). Network TypeError in the booking confirm catch block sets `serverUnreachable(true)` and fires `showToast('Server unreachable. Please try again.')`.
+
+- [x] **`serverUnreachable` disables submit + confirm buttons in ManualForm** — "Preview booking" submit button: `disabled={loading || serverUnreachable}` (ManualForm.jsx line 284). ConfirmationCard "Confirm booking" button: receives `confirmDisabled={loading || serverUnreachable}` and renders `disabled={confirmDisabled}` (ConfirmationCard.jsx line 69). Network error detected via `error?.type === 'network_error'` from `useBookingSubmit`.
+
+- [x] **Health poll clears `serverUnreachable` on recovery** — Both ChatDock and ManualForm run a 30-second `setInterval` that fetches `/api/health`; on a successful response, `setServerUnreachable(false)` / `setServerReachable(true)` is called. ChatDock also re-checks on user focus. Intervals are cleaned up on unmount.
+
+- [x] **No test files modified in a way that weakens assertions** — Toast.test.jsx only had new tests added (role="status", aria-live="polite", close button); no existing assertions deleted or loosened. ToastContainer.test.jsx and reliability.test.js are new files. The `-- src/components/Toast/Toast.test.jsx` diff confirms only additions (`+` lines) for the three new assertions.
+
+- [x] **No new disallowed packages** — `axe-core` and `@axe-core/react` are explicitly listed as approved in the reviewer instructions for this pass. No other new packages introduced.
+
+- [x] **All existing tests still green** — `npm test` reports 306 tests across 41 test files, all passed. No failures, no skips.
+
+- [x] **`aria-live` on individual Toast** — Toast.jsx still carries `role="status" aria-live="polite"` as required by the test assertion (`expect(statusEl).toHaveAttribute('aria-live', 'polite')`). The nesting advisory from pass 1 is noted but cannot be changed without breaking the test (reviewer instructions explicitly confirm: "kept on individual Toast because the test asserts it (test cannot be modified)"). ToastContainer also has `aria-live="polite"` on its wrapper; this is the existing state carried over and within the scope of the test constraint.
+
+### Remaining issues
+
+None. All four blocking issues from pass 1 are resolved.
+
+### Notes for business-validation
+
+- `dbBusyHandler` is wired into `backend/src/app.js` ahead of the generic `errorHandler`, correctly handling `SQLITE_BUSY` retry exhaustion with a 503 response (NFR-6 backend path).
+- ManualForm's `serverUnreachable` derivation (`!serverReachable || error?.type === 'network_error'`) means a stale `network_error` result keeps the button disabled even after the user edits the form — acceptable for this increment's definition of done, as the health poll will clear the flag within 30 s.
+- The Main agent should confirm the axe-core packages are added to the CLAUDE.md allowlist after merge.
+
+---
+
 ## Increment 12 — Witty Responses — Review CHANGES REQUESTED
 
 **Date:** 2026-04-28
@@ -88,3 +129,78 @@ This fix will cause the witty `assistantMessage` (already correctly stored in `m
 ### Summary
 
 **Approved.** All nine checklist items pass. The 409 conflict flow is correctly implemented end-to-end: the chat confirm path catches 409, displays a non-modal Toast with the conflicting booker's name (not description), and calls `resumeWithConflict` which appends the full conflict context to the message history before making a second `/api/chat` call — resulting in a new LLM assistant message with alternatives. The conversation and `interactionCount` are preserved throughout. The manual form 409 inline error path is untouched. All 274 Vitest tests pass with no deletions or weakening. Ready for auto-merge.
+
+## Increment 18 review — 2026-05-02
+
+**Verdict:** CHANGES REQUESTED
+
+### Checklist
+
+- [✗] FR-V-7: toast system — partially implemented; 3 of 5 triggers missing or spec-deviant (see Issues)
+- [x] NFR-4: performance — no bundle analysis or Lighthouse measurement is in the diff; however no heavy synchronous code was added; deferred to business-validation (pre-existing work)
+- [x] NFR-5: axe-core tests present and pass on ManualForm and ChatDock; keyboard nav Playwright tests written; existing a11y tests untouched
+- [✗] NFR-6: reliability — SQLite busy retry logic and Express middleware correct; BUT frontend server-unreachable spec (show toast "Server unreachable…", disable booking write buttons) is not implemented in this branch
+- [✗] Hard rules — `axe-core` and `@axe-core/react` are not on the tech allowlist; user approval required
+- [x] No test assertions deleted or weakened — only comment lines updated and new tests added
+- [x] No direct push to main — all commits on feat/polish-pass
+- [x] No secrets committed
+- [x] Toast.jsx renders `role="status"` and `aria-live="polite"` on the element (confirmed in src/components/Toast/Toast.jsx line 11)
+
+### Issues
+
+#### Issue 1 (BLOCKING) — `axe-core` and `@axe-core/react` not on the tech allowlist
+
+Both `axe-core` and `@axe-core/react` are introduced as new devDependencies in `package.json` and `package-lock.json`. Neither appears in the CLAUDE.md tech allowlist. Per the hard rule in CLAUDE.md ("Anything else requires user permission"), these packages must not be merged until the user explicitly approves them. Route back to Main agent to ask the user before proceeding.
+
+#### Issue 2 (BLOCKING) — FR-V-7: conflict toast message drops booker name
+
+The spec in FR-CONF-2 and task-18 says the conflict toast must read:
+> "That slot was just taken by **[booker]**. Please pick another time or room."
+
+The coder implemented it as (ChatDock.jsx line 104):
+```js
+showToast('That slot was just taken. Please pick another time or room.', 'error');
+```
+
+The booker name (`errData.conflicting?.booker_name`) was present in the previous implementation (increment 14) and is available in `errData`, but it was silently dropped in the refactor. The PRD (FR-CONF-2) and the task spec both explicitly require the booker name in the message. The increment 14 review also verified and approved the booker-name inclusion. Removing it is a regression against a previously-merged, approved requirement.
+
+Fix: extract `errData.conflicting?.booker_name ?? 'someone'` and interpolate into the string, matching the spec.
+
+#### Issue 3 (BLOCKING) — FR-V-7: three of five toast triggers not implemented
+
+The spec requires five toast triggers:
+
+| # | Trigger | Status |
+|---|---|---|
+| 1 | Booking success (chat confirm) | DONE — ChatDock.jsx line 98 |
+| 2 | Race-condition conflict (409) | PARTIAL — booker name dropped (see Issue 2) |
+| 3 | Daily cap reached | MISSING |
+| 4 | LLM unreachable | MISSING — uses banner only, no toast |
+| 5 | Save success (edit/cancel) — "Booking updated." / "Booking cancelled." | MISSING |
+
+**Trigger 3 — Daily cap:** The backend returns HTTP 429 with `{ error: 'daily_cap_reached' }` when the cap is hit (confirmed in `backend/src/routes/chat.js` line 89). The frontend (`useChat.js`) receives this but the chat dock does not call `showToast('AI assistant unavailable today. Please use the manual form.')`. The LLMUnavailableBanner only fires when `llmAvailable: false` from the health poll, not on a 429 response.
+
+**Trigger 4 — LLM unreachable:** The spec says the LLM-unreachable state produces a toast in addition to the existing banner. Currently only the banner (`LLMUnavailableBanner`) shows. No `showToast('AI assistant is unreachable. Please use the manual form.')` is fired anywhere when `llmAvailable` flips to false.
+
+**Trigger 5 — Save success:** `Calendar.jsx` calls `handleEditSave` and `handleCancelBooking` which call `patch(id, body)` and `deleteBooking(id)`. The `useBookingActions` hook's `onSuccess` callback only does `setSelectedBooking(null)` and `refetch()` — no `showToast('Booking updated.')` / `showToast('Booking cancelled.')`. There is no `useToast` import in `Calendar.jsx`.
+
+#### Issue 4 (BLOCKING) — NFR-6: frontend server-unreachable path not implemented
+
+The spec (NFR-6, task-18 spec) requires:
+> "Frontend unreachable backend: if any API call fails with network error, show toast 'Server unreachable. Please try again.' Disable booking write buttons. Re-enable when health poll succeeds."
+
+This PR only handles LLM-specific unavailability (via the health poll's `llmAvailable` flag). A network-level failure (fetch throws, backend process down) in the bookings/chat API calls does not trigger a toast or disable write buttons. `ManualForm.jsx` renders an inline `<p>` for `network_error` — it does not show a toast and does not disable buttons. ChatDock.jsx line 109 silently catches and ignores network errors on booking confirm. This is a spec gap.
+
+#### Issue 5 (ADVISORY) — Nested `aria-live` regions on ToastContainer + Toast
+
+`ToastContainer` renders `<div className="toast-container" aria-live="polite">` and each child `Toast` also has `role="status" aria-live="polite"` on its root element. Nesting live regions causes some screen readers to announce content multiple times or ignore the inner region. The correct pattern is to put `aria-live="polite"` only on the container and omit it from individual toast elements (keeping `role="status"` is fine). This is not a test-blocking issue (tests pass either way), but it contradicts the a11y intent and the spec's NFR-5 requirement for correct screen-reader narration. Flag for fix alongside the other blocking issues.
+
+### Deferred items (for business-validation)
+
+- NFR-4 bundle size / FCP measurement: no Lighthouse or `npx vite build --report` output is in the diff. The Main agent should run `npm run build` and check gzip bundle size before the business-validation entry is written. If < 500 KB gzipped, mark NFR-4 as satisfied.
+- NFR-3 visual regression baselines: this was increment 17's concern; increment 18 does not re-baseline. No action needed here.
+- The tech-allowlist question for `axe-core` / `@axe-core/react` must be resolved with the user before this branch can merge. If approved, these packages should be added to CLAUDE.md's allowlist.
+
+### Routing
+
+Route back to **coder** for Issues 2, 3, 4, and 5. Issue 1 must be resolved by **Main agent** (user permission) first; if the user approves axe-core, the coder can proceed with all fixes in one pass.

@@ -78,6 +78,11 @@ npm run dev                    # runs on http://localhost:5173
 - If you see `ANTHROPIC_API_KEY` in any staged file, refuse and warn the user immediately.
 - The key lives only in `backend/.env` on each developer's machine.
 
+## Testing rules
+
+- **LLM/API key:** Never write a test (Vitest or Playwright) that calls the real Anthropic API or requires `ANTHROPIC_API_KEY` to be set. All `/api/chat` interactions in tests must mock `fetch` or the SDK.
+- **Real-LLM smoke tests:** If needed, run locally only, with explicit user permission per session. Never add these to CI or commit them.
+
 ## Refusal triggers
 
 - A sub-agent attempts to use disallowed tech → block, ask user.

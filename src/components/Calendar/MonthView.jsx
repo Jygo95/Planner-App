@@ -55,6 +55,7 @@ function buildCalendarDays(year, month) {
 export default function MonthView({
   year,
   month,
+  today,
   bookings,
   filteredRooms,
   onDayClick,
@@ -95,6 +96,7 @@ export default function MonthView({
             dateStr >= isoDate(year, month, 1) &&
             dateStr <= isoDate(year, month, new Date(year, month + 1, 0).getDate());
           const disabled = (minDate && dateStr < minDate) || (maxDate && dateStr > maxDate);
+          const isToday = dateStr === today;
           const density = densityMap[dateStr] || 0;
           const dayNum = parseInt(dateStr.slice(8), 10);
 
@@ -107,13 +109,16 @@ export default function MonthView({
                 'month-view-cell',
                 isCurrentMonth ? '' : 'month-view-cell--other',
                 disabled ? 'month-view-cell--disabled' : '',
+                isToday ? 'month-view-cell--today' : '',
               ]
                 .join(' ')
                 .trim()}
               aria-disabled={disabled ? 'true' : undefined}
               onClick={() => handleCellClick(dateStr, disabled)}
             >
-              <span className="month-view-day-num">{dayNum}</span>
+              <span className={`month-view-day-num${isToday ? ' month-view-day-num--today' : ''}`}>
+                {dayNum}
+              </span>
               {density > 0 && (
                 <span data-testid={`density-${dateStr}`} className="month-view-density">
                   {density}

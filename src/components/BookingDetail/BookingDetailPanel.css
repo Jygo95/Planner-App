@@ -1,19 +1,13 @@
 .booking-detail-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 360px;
-  height: 100%;
+  position: relative;
+  width: 100%;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--glass-shadow);
-  padding: 24px;
-  z-index: 100;
-  overflow-y: auto;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 20px 16px 16px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .booking-detail-panel::before {

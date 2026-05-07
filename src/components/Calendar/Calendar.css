@@ -20,7 +20,10 @@
   background: var(--glass-specular);
   pointer-events: none;
   border-radius: inherit;
+  z-index: 0;
 }
+
+/* ── Toolbar ──────────────────────────────────── */
 
 .calendar-toolbar {
   display: flex;
@@ -30,6 +33,8 @@
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
 }
 
 .view-picker {
@@ -44,12 +49,13 @@
   border-radius: var(--radius-button);
   color: inherit;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .view-picker button.active {
-  background: #2563eb;
+  background: var(--accent);
   color: #fff;
-  border-color: #2563eb;
+  border-color: var(--accent);
 }
 
 .nav-controls {
@@ -65,13 +71,25 @@
   border-radius: var(--radius-button);
   color: inherit;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .current-date-label {
-  font-size: 14px;
-  font-weight: 500;
-  min-width: 120px;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 80px;
   text-align: center;
+  color: var(--text-h);
+}
+
+.month-label {
+  min-width: 100px;
+}
+
+.riga-tz-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 2px;
 }
 
 .room-filter {
@@ -91,81 +109,159 @@
 
 .calendar-body {
   flex: 1;
-  overflow: auto;
-}
-
-/* Day view */
-.day-view {
-  height: 100%;
-  min-height: 600px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
-.day-view-columns {
-  display: flex;
-  flex: 1;
-  height: 100%;
-  min-height: 600px;
-}
+/* ── Time gutter (shared by day + week views) ─── */
 
-.room-column {
-  display: flex;
-  flex-direction: column;
+.time-gutter {
+  width: 56px;
+  flex-shrink: 0;
+  position: relative;
   border-right: 1px solid var(--glass-border);
 }
 
-.room-column:last-child {
-  border-right: none;
+.time-gutter-spacer {
+  width: 56px;
+  flex-shrink: 0;
 }
 
-.room-column-header {
+.time-gutter-cell {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.time-gutter-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+/* ── Grid lines ───────────────────────────────── */
+
+.hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+
+.half-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  pointer-events: none;
+}
+
+/* ── Day view ─────────────────────────────────── */
+
+.day-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.day-view-header-row {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.day-view-header-row .room-column-header {
+  flex: 1;
   padding: 6px 8px;
   font-size: 13px;
   font-weight: 600;
   text-transform: capitalize;
-  border-bottom: 1px solid var(--glass-border);
-  flex-shrink: 0;
+  text-align: center;
+  border-left: 1px solid var(--glass-border);
 }
 
-.room-column-body {
+.day-view-scroll {
   flex: 1;
-  min-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.day-view-grid {
+  display: flex;
+  flex-direction: row;
   position: relative;
 }
 
+.day-view-columns-area {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+/* ── Room columns (day view) ──────────────────── */
+
+.room-column {
+  position: relative;
+  border-left: 1px solid var(--glass-border);
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.room-column:first-child {
+  border-left: none;
+}
+
 /* Room colour coding */
-.room-column-blue .room-column-header {
-  background: rgba(59, 130, 246, 0.25);
-  color: #e0e7ff;
+.room-column-blue .room-column-header,
+.day-view-header-row .room-column-header.room-column-blue {
+  background: rgba(59, 130, 246, 0.2);
+  color: #bfdbfe;
 }
 
-.room-column-green .room-column-header {
-  background: rgba(16, 185, 129, 0.25);
-  color: #d1fae5;
+.room-column-green .room-column-header,
+.day-view-header-row .room-column-header.room-column-green {
+  background: rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
 }
 
-.room-column-amber .room-column-header {
-  background: rgba(245, 158, 11, 0.25);
-  color: #fef3c7;
+.room-column-amber .room-column-header,
+.day-view-header-row .room-column-header.room-column-amber {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
 }
 
-/* Booking blocks */
+/* ── Booking blocks ───────────────────────────── */
+
 .booking-block {
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: #f0f0f0;
-  padding: 2px 4px;
-  font-size: 0.75rem;
+  padding: 2px 5px;
+  font-size: 0.72rem;
   overflow: hidden;
   cursor: pointer;
   box-sizing: border-box;
-  left: 0;
+  position: absolute;
+  left: 2px;
+  right: 2px;
 }
 
 .booking-block:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.2);
+  z-index: 2;
 }
 
 .booking-booker {
@@ -178,45 +274,81 @@
 
 .booking-time {
   display: block;
-  font-size: 11px;
-  color: #c0c0c0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* Time indicator */
+/* ── Time indicator ───────────────────────────── */
+
 .time-indicator {
   height: 2px;
-  background: red;
+  background: #f87171;
   z-index: 10;
   left: 0;
   right: 0;
   pointer-events: none;
+  position: absolute;
 }
 
-/* Week view */
+/* ── Week view ─────────────────────────────────── */
+
 .week-view {
   height: 100%;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.week-view-table {
-  border-collapse: collapse;
-  width: 100%;
+.week-view-header-row {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .week-day-header {
+  flex: 1;
   padding: 6px 4px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  border: 1px solid var(--glass-border);
+  border-left: 1px solid var(--glass-border);
   background: var(--glass-bg);
-  color: inherit;
+  color: var(--text-dim);
 }
 
-.week-day-cell {
-  border: 1px solid var(--glass-border);
-  min-height: 120px;
-  height: 120px;
-  vertical-align: top;
+.week-day-header--today {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.week-view-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.week-view-grid {
+  display: flex;
+  flex-direction: row;
   position: relative;
+}
+
+.week-day-column {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid var(--glass-border);
+  box-sizing: border-box;
+}
+
+.week-day-column--today {
+  background: rgba(79, 142, 247, 0.04);
+}
+
+/* ── Week/day old table remnants (remove) ─────── */
+
+.week-view-table,
+.week-day-cell,
+.room-column-body,
+.room-column-header:not(.day-view-header-row .room-column-header) {
+  /* kept for backward compat with test selectors — no visual effect */
 }
