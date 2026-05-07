@@ -10,15 +10,19 @@ import Anthropic from '@anthropic-ai/sdk';
  * @returns {Promise<string>} The text of the first content block
  */
 export async function callAnthropic({ messages, system, maxTokens }) {
-  // The @anthropic-ai/sdk CJS default export is a callable factory wrapper,
-  // not a class — call it without `new` so vi.mock can replace it cleanly.
-  const client = Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  // Strip any custom fields (parsedFields, _raw, etc.) — Anthropic only accepts role + content.
+  const cleanMessages = messages.map(({ role, content }) => ({
+    role,
+    content: typeof content === 'string' ? content : String(content),
+  }));
 
   const response = await client.messages.create({
-    model: 'claude-haiku-4-5',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: maxTokens,
     system,
-    messages,
+    messages: cleanMessages,
   });
 
   return response.content[0].text;

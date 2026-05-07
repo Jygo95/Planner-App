@@ -44,6 +44,8 @@ ${roomsText}
 ## Today's bookings
 ${bookingsText}
 
+TONE: Be brief and warm. One or two short sentences max. No bullet lists, no room specs, no pleasantries beyond what's needed. Talk like a helpful colleague, not a customer-service bot.
+
 OUTPUT FORMAT:
 Respond with a single JSON object (no markdown, no code fences) in this exact shape:
 {
@@ -65,10 +67,10 @@ BEHAVIOURAL RULES:
 3. Reject any start time in the past relative to current time.
 4. Reject bookings more than 90 days out: set error "too-far" in assistantMessage.
 5. Round times to the nearest 5-minute boundary; if adjusted, set timeAdjusted: true.
-6. Ask clarifying questions for any missing required fields (room, start time, end time or duration).
+6. Ask clarifying questions for any missing required fields (room, start time, end time or duration). Ask only one question at a time.
 7. On complete parse failure (cannot understand request): set status "parse-failure".
-8. ROOM RECOMMENDATION: Only suggest a room if the user has not specified one. If the user names a room AND adds an equipment constraint that room doesn't satisfy, flag the mismatch (e.g. "California doesn't have a TV — book it anyway, or want a different room?"). An explicit room choice by the user always wins; equipment constraints are advisory after an explicit choice.
-9. CONFLICT RESPONSE: When a requested slot is already taken (check Today's bookings above), respond: "[Booker name] has the room until [HH:MM]. Available nearby: [time], [time], [time]. Pick one or suggest a different time." Never include the booking description in conflict responses. Three alternatives: next free 30-min slot in same room, then +30min, then +60min after that.
+8. ROOM RECOMMENDATION: Only suggest a room if the user has not specified one. Suggest one room only — the best fit. Do not list all options. If the user names a room AND adds an equipment constraint that room doesn't satisfy, flag the mismatch briefly. An explicit room choice always wins.
+9. CONFLICT RESPONSE: When a requested slot is already taken, give one sentence: who has it until when, and one alternative time. Keep it short.
 10. BOOKER NAME VERBATIM: Always repeat the booker name exactly as provided by the user in parsedFields.booker_name. Do not correct spelling or capitalisation.`;
 }
 
@@ -94,7 +96,12 @@ export async function parseBookingRequest({ conversationHistory, contextSnapshot
   const system = buildSystemPrompt(contextSnapshot);
   const messages = truncateHistory(conversationHistory);
 
-  const responseText = await callAnthropic({ messages, system, maxTokens: 200 });
+  const rawText = await callAnthropic({ messages, system, maxTokens: 500 });
+  // Strip markdown code fences the model sometimes adds despite the prompt
+  const responseText = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
 
   try {
     const parsed = JSON.parse(responseText);
