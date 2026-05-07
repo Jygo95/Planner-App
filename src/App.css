@@ -29,6 +29,14 @@
   padding: 8px 16px;
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
+  z-index: 1;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-h);
 }
 
 button {
@@ -44,7 +52,7 @@ button:hover {
 }
 
 button:focus-visible {
-  outline: 2px solid #60a5fa;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -60,54 +68,108 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid #60a5fa;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.app-title {
-  font-size: 18px;
-  font-weight: 600;
-}
+/* ── Main layout ─────────────────────────────── */
 
 .app-main {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
-}
-
-@media (min-width: 1280px) {
-  .app-main {
-    flex-direction: row;
-  }
-
-  .chat-dock {
-    position: static;
-    flex: 0 0 320px;
-    display: flex;
-    flex-direction: column;
-  }
+  min-height: 0;
 }
 
 .calendar-area {
   flex: 1;
-  min-height: 200px;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.chat-dock {
+/* ── Sidebar (≥768px) ────────────────────────── */
+
+.app-sidebar {
+  width: 340px;
   flex-shrink: 0;
-  height: 240px;
   display: flex;
   flex-direction: column;
+  border-left: 1px solid var(--glass-border);
+  overflow-y: auto;
+  min-height: 0;
 }
 
-@media (min-width: 900px) and (max-width: 1279px) {
+.app-sidebar__chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Mobile layout (<768px) ──────────────────── */
+
+@media (max-width: 767px) {
   .app-main {
-    flex-direction: row;
+    flex-direction: column;
   }
 
-  .chat-dock {
-    height: auto;
-    flex: 0 0 280px;
+  .calendar-area {
+    flex: 1;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  /* FAB */
+  .booking-fab {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 200;
+    cursor: pointer;
+  }
+
+  /* Mobile sheet overlay */
+  .mobile-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 300;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .mobile-sheet {
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #1a1a2e;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    border: 1px solid var(--glass-border);
+  }
+}
+
+/* Hide FAB on desktop */
+@media (min-width: 768px) {
+  .booking-fab {
+    display: none;
+  }
+
+  .mobile-sheet-overlay {
+    display: none;
   }
 }

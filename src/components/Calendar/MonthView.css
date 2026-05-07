@@ -63,6 +63,22 @@
   line-height: 1;
 }
 
+.month-view-day-num--today {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.month-view-cell--today {
+  border-color: var(--accent-border);
+}
+
 .month-view-density {
   display: inline-block;
   background: #2563eb;

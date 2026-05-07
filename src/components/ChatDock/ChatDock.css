@@ -1,8 +1,9 @@
-/* ChatDock — Liquid Glass themed */
+/* ChatDock — fills its sidebar container */
 .chat-dock {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -11,28 +12,6 @@
   box-shadow: var(--glass-shadow);
   overflow: hidden;
   position: relative;
-}
-
-/* Mobile: docked at bottom */
-@media (max-width: 1023px) {
-  .chat-dock {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 320px;
-    border-radius: var(--radius-card) var(--radius-card) 0 0;
-    z-index: 100;
-  }
-}
-
-/* Desktop: right panel (layout handled by App.css .chat-dock) */
-@media (min-width: 1024px) {
-  .chat-dock {
-    position: static;
-    height: 100%;
-    border-radius: var(--radius-card);
-  }
 }
 
 /* History */
